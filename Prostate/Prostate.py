@@ -388,6 +388,7 @@ class DataManager:
     return self.mri
       
   def alignSlices(self):
+    '''Aligns the Histology to the MRI slide.'''
     volumeNodes = slicer.util.getNodes('*VolumeNode*').values()
     if (len(volumeNodes) == 0):
       return
