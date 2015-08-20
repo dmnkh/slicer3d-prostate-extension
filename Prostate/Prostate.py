@@ -236,6 +236,12 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     
     # Set MRI Landmarks Button
     
+    self.switchToLandmarksLayoutButton = qt.QPushButton("Switch to Landmarks Layout")
+    self.switchToLandmarksLayoutButton.toolTip = "Switch to Landmarks Layout"
+    self.switchToLandmarksLayoutButton.name = "SwitchToLandmarksLayout"
+    landmarksFormLayout.addWidget(self.switchToLandmarksLayoutButton)
+    self.switchToLandmarksLayoutButton.connect('clicked()', landmarkManager.setLayout)
+    
     self.setMRILandmarksButton = qt.QPushButton("Set MRI Landmarks")
     self.setMRILandmarksButton.toolTip = "Set MRI Landmarks"
     self.setMRILandmarksButton.name = "SetMRILandmarks"
@@ -536,6 +542,23 @@ class ROIManager():
     
 class LandmarkManager():
     
+    layout = ("<layout type=\"vertical\" split=\"true\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">Y</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+      "  </view>"
+      " </item>"
+      "</layout>")
+    
     def __init__(self, dataManager):
       self.dataManager = dataManager
     
@@ -561,3 +584,20 @@ class LandmarkManager():
     def setLandmarksForHisto(self):
       self.createFiducialMap('Histo')
       self.__setMouseModeToFiducial()
+      
+    def getFiducialList(self, name):
+       fidList = slicer.util.getNode(name)
+       numFids = fidList.GetNumberOfFiducials()
+       for i in range(numFids):
+        ras = [0,0,0]
+        fidList.GetNthFiducialPosition(i,ras)
+        # the world position is the RAS position with any transform matrices applied
+        world = [0,0,0,0]
+        fidList.GetNthFiducialWorldCoordinates(0,world)
+        print i,": RAS =",ras,", world =",world
+        
+    def setLayout(self):
+        layoutManager = slicer.app.layoutManager()
+        self.customLayoutId = 501
+        layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.customLayoutId, self.layout)                                         
+        layoutManager.setLayout(self.customLayoutId)
