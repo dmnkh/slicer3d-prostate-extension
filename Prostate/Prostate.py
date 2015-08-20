@@ -232,6 +232,35 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     landmarksCollapsibleButton.text = "Set Landmarks"
     self.layout.addWidget(landmarksCollapsibleButton)
     landmarksFormLayout = qt.QFormLayout(landmarksCollapsibleButton)
+    landmarkManager = LandmarkManager(dm)
+    
+    # Set MRI Landmarks Button
+    
+    self.setMRILandmarksButton = qt.QPushButton("Set MRI Landmarks")
+    self.setMRILandmarksButton.toolTip = "Set MRI Landmarks"
+    self.setMRILandmarksButton.name = "SetMRILandmarks"
+    landmarksFormLayout.addWidget(self.setMRILandmarksButton)
+    self.setMRILandmarksButton.connect('clicked()', landmarkManager.setLandmarksForMRI)
+    
+    self.finishedMRIButton = qt.QPushButton("Finished MRI")
+    self.finishedMRIButton.toolTip = "Finished MRI Landmarks"
+    self.finishedMRIButton.name = "FinishedMRILandmarks"
+    landmarksFormLayout.addWidget(self.finishedMRIButton)
+    self.finishedMRIButton.connect('clicked()', landmarkManager.setMouseModeBack)
+    
+    # Set Histology Landmarks Button
+    
+    self.setHistoLandmarksButton = qt.QPushButton("Set Histology Landmarks")
+    self.setHistoLandmarksButton.toolTip = "Set Histology Landmarks"
+    self.setHistoLandmarksButton.name = "SetHistoLandmarks"
+    landmarksFormLayout.addWidget(self.setHistoLandmarksButton)
+    self.setHistoLandmarksButton.connect('clicked()', landmarkManager.setLandmarksForHisto)
+    
+    self.finishedHistoButton = qt.QPushButton("Finished Histo")
+    self.finishedHistoButton.toolTip = "Finished MRI Landmarks"
+    self.finishedHistoButton.name = "FinishedMRILandmarks"
+    landmarksFormLayout.addWidget(self.finishedHistoButton)
+    self.finishedHistoButton.connect('clicked()', landmarkManager.setMouseModeBack)
 	
 	#
     # Registration Optimization
@@ -504,3 +533,31 @@ class ROIManager():
     center = size / 2
     parameterNode.SetParameter('PaintEffect,radius', '5')
     paintTool = EditorLib.PaintEffectTool(sliceWidget)
+    
+class LandmarkManager():
+    
+    def __init__(self, dataManager):
+      self.dataManager = dataManager
+    
+    def __setMouseModeToFiducial(self):
+      placeModePersistence = 1
+      slicer.modules.markups.logic().StartPlaceMode(placeModePersistence)
+    
+    def setMouseModeBack(self):
+      interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
+      interactionNode.SwitchToViewTransformMode()
+      # also turn off place mode persistence if required
+      interactionNode.SetPlaceModePersistence(0)
+    
+    def createFiducialMap(self, name):
+      if slicer.util.getNode(name) is None:
+        fiducial = slicer.mrmlScene.AddNode(slicer.vtkMRMLMarkupsFiducialNode())
+        fiducial.SetName(name)
+                
+    def setLandmarksForMRI(self):
+      self.createFiducialMap('MRI')
+      self.__setMouseModeToFiducial()
+      
+    def setLandmarksForHisto(self):
+      self.createFiducialMap('Histo')
+      self.__setMouseModeToFiducial()
