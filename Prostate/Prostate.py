@@ -179,6 +179,11 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     #self.orientationSliderWidget.setMRMLTransformNode(self.getPivotToRasTransformNode())
     loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
     
+    self.applyTransformButton = qt.QPushButton("Apply")
+    self.applyTransformButton.toolTip = "Saves the positioning of the histology slice."
+    self.applyTransformButton.name = "ApplyTransform"
+    loadDataFormLayout.addWidget(self.applyTransformButton)
+    self.applyTransformButton.connect('clicked()', dm.applyTransformation)
     
 	#
 	# Bounding Box
@@ -215,6 +220,14 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     roiDefintitionFormLayout.addWidget(self.markUrethraButton)
     self.markUrethraButton.connect('clicked()', roiManager.markUrethra)
 	
+    # Finished Marking Button
+    
+    self.finishedMarkingButton = qt.QPushButton("Finished Marking")
+    self.finishedMarkingButton.toolTip = "Finished Marking"
+    self.finishedMarkingButton.name = "FinishedMarking"
+    roiDefintitionFormLayout.addWidget(self.finishedMarkingButton)
+    self.finishedMarkingButton.connect('clicked()', roiManager.setMouseModeBack)
+    
     #
     # PET/MR alignment
 	#
@@ -458,7 +471,8 @@ class DataManager:
       slicer.app.layoutManager().sliceWidget(color).sliceLogic().GetSliceCompositeNode().SetForegroundVolumeID(self.histo.GetID())
       slicer.app.layoutManager().sliceWidget(color).sliceLogic().GetSliceCompositeNode().SetForegroundOpacity(0.5)
       slicer.app.layoutManager().sliceWidget(color).sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(self.mri.GetID())      
-      slicer.app.layoutManager().sliceWidget(color).fitSliceToBackground()
+      #slicer.app.layoutManager().sliceWidget(color).fitSliceToBackground()
+      slicer.app.layoutManager().sliceWidget(color).sliceLogic().FitSliceToAll()
 
   def loadMRI(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
@@ -504,6 +518,12 @@ class DataManager:
     if self.roiLabelMap is not None:
       return self.roiLabelMap
   
+  def applyTransformation(self):
+    if (self.transformNode is not None):
+      print('bla')
+      logic = slicer.vtkSlicerTransformLogic()
+      logic.hardenTransform(self.mri)
+  
 class ROIManager():
     
   def __init__(self, dataManager):
@@ -539,6 +559,12 @@ class ROIManager():
     center = size / 2
     parameterNode.SetParameter('PaintEffect,radius', '5')
     paintTool = EditorLib.PaintEffectTool(sliceWidget)
+    
+  def setMouseModeBack(self):
+    interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
+    interactionNode.SwitchToViewTransformMode()
+    # also turn off place mode persistence if required
+    interactionNode.SetPlaceModePersistence(0)
     
 class LandmarkManager():
     
