@@ -439,6 +439,34 @@ class ProstateTest(ScriptedLoadableModuleTest):
 
 class DataManager:
   
+  layout = ("<layout type=\"vertical\" split=\"true\" >"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Red\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <layout type=\"horizontal\">"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Yellow\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">Y</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Green\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">G</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#6EB04B</property>"
+      "  </view>"
+      " </item>"
+      " </layout>"     
+      " </item>"
+      "</layout>")
+  
   def __init__(self):
     self.histo = None
     self.mri = None
@@ -456,6 +484,7 @@ class DataManager:
       
   def alignSlices(self):
     '''Aligns the Histology to the MRI slide.'''
+    self.setLayout()
     if (not self.checkLoaded()):
       return
   
@@ -473,6 +502,42 @@ class DataManager:
       slicer.app.layoutManager().sliceWidget(color).sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(self.mri.GetID())      
       #slicer.app.layoutManager().sliceWidget(color).fitSliceToBackground()
       slicer.app.layoutManager().sliceWidget(color).sliceLogic().FitSliceToAll()
+      
+    # Main view with both MRI and histology
+    node = slicer.app.layoutManager().sliceWidget('Red').sliceLogic().GetSliceCompositeNode()
+    node.SetForegroundVolumeID(self.histo.GetID())
+    node.SetForegroundOpacity(0.5)
+    node.SetBackgroundVolumeID(self.mri.GetID())      
+    #slicer.app.layoutManager().sliceWidget(color).fitSliceToBackground()
+    slicer.app.layoutManager().sliceWidget('Red').sliceLogic().FitSliceToAll()
+#     newFOVx = node.GetFieldOfView()[0] * 0.7
+#     newFOVy = node.GetFieldOfView()[1] * 0.7
+#     newFOVz = node.GetFieldOfView()[2]
+#     node = slicer.util.getNode('*SliceNodeRed*')
+#     node.SetFieldOfView( newFOVx, newFOVy, newFOVz )
+#     node.UpdateMatrices()      
+
+    # MRI only view
+    node = slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic().GetSliceCompositeNode()
+    node.SetForegroundVolumeID(None)
+    node.SetBackgroundVolumeID(self.mri.GetID())
+    slicer.app.layoutManager().sliceWidget('Yellow').sliceLogic().FitSliceToAll()
+    node = slicer.util.getNode('*SliceNodeYellow*')
+    node.SetOrientationToAxial()
+    node.RotateToVolumePlane(volumeNodes[0])
+#     newFOVx = node.GetFieldOfView()[0] * 2
+#     newFOVy = node.GetFieldOfView()[1] * 2
+#     newFOVz = node.GetFieldOfView()[2]
+#     node.SetFieldOfView( newFOVx, newFOVy, newFOVz )
+#     node.UpdateMatrices()  
+    
+    # Histology only view
+    node = slicer.app.layoutManager().sliceWidget('Green').sliceLogic().GetSliceCompositeNode()
+    node.SetBackgroundVolumeID(self.histo.GetID())
+    node = slicer.util.getNode('*SliceNodeGreen*')
+    node.SetOrientationToAxial()
+    slicer.app.layoutManager().sliceWidget('Green').sliceLogic().FitSliceToAll()
+    node.RotateToVolumePlane(volumeNodes[0])
 
   def loadMRI(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
@@ -523,6 +588,12 @@ class DataManager:
       print('bla')
       logic = slicer.vtkSlicerTransformLogic()
       logic.hardenTransform(self.mri)
+      
+  def setLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    self.customLayoutId = 502
+    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.customLayoutId, self.layout)                                         
+    layoutManager.setLayout(self.customLayoutId)
   
 class ROIManager():
     
