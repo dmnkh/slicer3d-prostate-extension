@@ -164,6 +164,8 @@ class DataManager:
     node.SetSliceOffset(float(histoOffset))
     node = slicer.util.getNode('*SliceNodeHistology*')
     node.SetSliceOffset(float(histoOffset))
+    node = slicer.util.getNode('*SliceNodeAxial*')
+    node.SetSliceOffset(float(histoOffset))
 
   def loadMRI(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
