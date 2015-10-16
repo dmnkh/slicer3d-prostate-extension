@@ -169,16 +169,16 @@ class DataManager:
 
   def loadMRI(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
-    if (volumeLoaded):
-      self.mri = slicer.util.getNode('*ScalarVolumeNode*')
+    #if (volumeLoaded):
+    self.mri = slicer.util.getNode('*ScalarVolumeNode*')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
   
   def loadHistology(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
-    if (volumeLoaded):
-      self.histo = slicer.util.getNode('*VectorVolumeNode*')
+    #if (volumeLoaded):
+    self.histo = slicer.util.getNode('*VectorVolumeNode*')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
