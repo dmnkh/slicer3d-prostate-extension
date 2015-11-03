@@ -3,9 +3,6 @@ import unittest
 import EditorLib
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-from DataManager import DataManager
-from ROIManager import ROIManager
-from LandmarkManager import LandmarkManager
 
 #
 # Prostate
@@ -289,7 +286,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.generateMRIMaskButton = qt.QPushButton("Generate mask from MRI fiducials")
     self.generateMRIMaskButton.toolTip = "Generate a mask for the MRI volume out of the MRI landmarks"
     self.generateMRIMaskButton.name = "GenerateMRIMask"
-    landmarksFormLayout.addWidget(self.finishedHistoButton)
+    landmarksFormLayout.addWidget(self.generateMRIMaskButton)
     self.generateMRIMaskButton.connect('clicked()', landmarkManager.generateMRIMask)
 	
 	#
@@ -770,7 +767,6 @@ class LandmarkManager():
         layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.customLayoutId, self.layout)                                         
         layoutManager.setLayout(self.customLayoutId)
     
-    
         
     def generateMRIMask(self):
         import VolumeClipWithModel
@@ -779,4 +775,20 @@ class LandmarkManager():
         self.clippingModelNode.SetName('clipModelNode')
         slicer.mrmlScene.AddNode(self.clippingModelNode)
         volumeClipLogic.updateModelFromMarkup(slicer.util.getNode('MRI'), self.clippingModelNode)
+        outputLabelMap = slicer.vtkMRMLScalarVolumeNode()
+        name = ('MRIMask-label')
+        outputLabelMap.SetName(name)
+        slicer.mrmlScene.AddNode(outputLabelMap)
+        volumeLogic = slicer.modules.volumes.logic()
+        label = slicer.util.getNode('*MRIMask*')
+        volumeLogic.CreateAndAddLabelVolume(slicer.mrmlScene, label, "newname")
+        outputLabelMap = slicer.util.getNode('newname')
+        #slicer.mrmlScene.AddNode(outputLabelMap)
+
+        # define params
+        params = {'sampleDistance': 0.1, 'labelValue': 5, 'InputVolume': slicer.util.getNode('CTChest'),
+                  'surface': self.clippingModelNode.GetID(), 'OutputVolume': outputLabelMap.GetID()}
+
+        # run ModelToLabelMap-CLI Module
+        slicer.cli.run(slicer.modules.modeltolabelmap, None, params, wait_for_completion=True)
         
