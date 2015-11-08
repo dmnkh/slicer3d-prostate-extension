@@ -35,6 +35,15 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
+  
+  def __init__(self, parent=None):
+    ScriptedLoadableModuleWidget.__init__(self, parent)
+    self.logic = ProstateLogic()
+    self.layoutManager = slicer.app.layoutManager()
+    self.markupsLogic = slicer.modules.markups.logic()
+    self.volumesLogic = slicer.modules.volumes.logic()
+    #self.modulePath = slicer.modules.slicetracker.path.replace(self.moduleName + ".py", "")
+    #self.iconPath = os.path.join(self.modulePath, 'Resources/Icons')
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -322,6 +331,39 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
+  def __init__(self, parent=None):
+    self.mriVolume = None
+    self.histoVolume = None
+    self.mriLabelmap = None
+    self.histoLabelmap = None
+    self.mriLandmarks = None
+    self.histoLandmarks = None
+    self.wholeSceneTransform = None
+    self.mriTransform = None
+
+  def loadMRI(self):
+    volumeLoaded = slicer.util.openAddVolumeDialog()
+    #if (volumeLoaded):
+    self.mriVolume = slicer.util.getNode('*ScalarVolumeNode*')
+    if (self.checkLoaded()):
+      self.alignSlices()
+      self.setupTransform()
+      
+  def getMRIVolume(self):
+    if self.mriVolume is not None:
+      return self.mriVolume
+  
+  def loadHistology(self):
+    volumeLoaded = slicer.util.openAddVolumeDialog()
+    #if (volumeLoaded):
+    self.mriVolume = slicer.util.getNode('*VectorVolumeNode*')
+    if (self.checkLoaded()):
+      self.alignSlices()
+      self.setupTransform()
+      
+  def getHistologyVolume(self):
+    if self.histoVolume is not None:
+        return self.histoVolume
 
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
@@ -743,11 +785,11 @@ class LandmarkManager():
         fiducial.SetName(name)
                 
     def setLandmarksForMRI(self):
-      self.createFiducialMap('MRI')
+      self.createFiducialMap('MRI_Landmarks')
       self.__setMouseModeToFiducial()
       
     def setLandmarksForHisto(self):
-      self.createFiducialMap('Histo')
+      self.createFiducialMap('Histo_Landmarks')
       self.__setMouseModeToFiducial()
       
     def getFiducialList(self, name):
@@ -781,8 +823,8 @@ class LandmarkManager():
         slicer.mrmlScene.AddNode(outputLabelMap)
         volumeLogic = slicer.modules.volumes.logic()
         label = slicer.util.getNode('*MRIMask*')
-        volumeLogic.CreateAndAddLabelVolume(slicer.mrmlScene, label, "newname")
-        outputLabelMap = slicer.util.getNode('newname')
+        volumeLogic.CreateAndAddLabelVolume(slicer.mrmlScene, label, 'MRI_Label_Map')
+        outputLabelMap = slicer.util.getNode('MRI_Label_Map')
         #slicer.mrmlScene.AddNode(outputLabelMap)
 
         # define params
