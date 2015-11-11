@@ -141,7 +141,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.loadMRIButton.toolTip = "Load the MRI File."
     self.loadMRIButton.name = "LoadMRI"
     loadDataFormLayout.addWidget(self.loadMRIButton)
-    self.loadMRIButton.connect('clicked()', dm.loadMRI)
+    self.loadMRIButton.connect('clicked()', self.logic.loadMRIVolume)
 
 	# Load Histology Button
 	
@@ -149,7 +149,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.loadHistologyButton.toolTip = "Load the Histology File."
     self.loadHistologyButton.name = "LoadHistology"
     loadDataFormLayout.addWidget(self.loadHistologyButton)
-    self.loadHistologyButton.connect('clicked()', dm.loadHistology)
+    self.loadHistologyButton.connect('clicked()', self.logic.loadHistologyVolume)
 	
     '''lm = slicer.app.layoutManager()
     red = lm.sliceWidget('Red')
@@ -341,10 +341,11 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     self.wholeSceneTransform = None
     self.mriTransform = None
 
-  def loadMRI(self):
+  def loadMRIVolume(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
     #if (volumeLoaded):
     self.mriVolume = slicer.util.getNode('*ScalarVolumeNode*')
+    self.mriVolume.setName('MRI_Volume')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
@@ -353,10 +354,11 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     if self.mriVolume is not None:
       return self.mriVolume
   
-  def loadHistology(self):
+  def loadHistologyVolume(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
     #if (volumeLoaded):
-    self.mriVolume = slicer.util.getNode('*VectorVolumeNode*')
+    self.histoVolume = slicer.util.getNode('*VectorVolumeNode*')
+    self.histoVolume.setName('Histo_Volume')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
@@ -816,7 +818,7 @@ class LandmarkManager():
         self.clippingModelNode = slicer.vtkMRMLModelNode()
         self.clippingModelNode.SetName('clipModelNode')
         slicer.mrmlScene.AddNode(self.clippingModelNode)
-        volumeClipLogic.updateModelFromMarkup(slicer.util.getNode('MRI'), self.clippingModelNode)
+        volumeClipLogic.updateModelFromMarkup(slicer.util.getNode('MRI_Landmarks'), self.clippingModelNode)
         outputLabelMap = slicer.vtkMRMLScalarVolumeNode()
         name = ('MRIMask-label')
         outputLabelMap.SetName(name)
