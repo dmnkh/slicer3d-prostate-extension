@@ -219,7 +219,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.markProstateButton.toolTip = "Mark the boundaries of the prostate."
     self.markProstateButton.name = "MarkProstate"
     roiDefintitionFormLayout.addWidget(self.markProstateButton)
-    self.markProstateButton.connect('clicked()', roiManager.markProstate)
+    self.markProstateButton.connect('clicked()', self.logic.markBoundaries)
 
     # Mark Urethra Button
     
@@ -235,7 +235,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.finishedMarkingButton.toolTip = "Finished Marking"
     self.finishedMarkingButton.name = "FinishedMarking"
     roiDefintitionFormLayout.addWidget(self.finishedMarkingButton)
-    self.finishedMarkingButton.connect('clicked()', roiManager.setMouseModeBack)
+    self.finishedMarkingButton.connect('clicked()', self.logic.setMouseModeBack)
     
     # 
     
@@ -415,6 +415,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     self.positionSliderWidget = None
     self.orientationSliderWidget = None
     self.roiLabelMap = None
+    self.labelMapValues = {'PROSTATE': 238, 'URETHRA': 227}
 
   def loadMRIVolume(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
@@ -534,14 +535,6 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     else:
       return False
   
-  def createROILabelMap(self):
-    if self.roiLabelMap is None:
-      self.roiLabelMap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.getMRI(), 'prostateLabelMap')
-
-  def getROILabelMap(self):
-    if self.roiLabelMap is not None:
-      return self.roiLabelMap
-  
   def applyTransformation(self):
     if (self.transformNode is not None):
       print('bla')
@@ -603,7 +596,52 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     '''
       
   def applyRegistration(self):
-    return None  
+    print(self.histoVolume.GetID())
+    print(self.mriVolume.GetID())
+    if self.wholeSceneTransform is None:
+        self.wholeSceneTransform = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
+    paramsRigid = {'fixedVolume': self.histoVolume,
+                   'movingVolume': self.mriVolume,
+                   'fixedBinaryVolume': self.histoLabelmap,
+                   'movingBinaryVolume': self.mriLabelmap,
+                   'outputTransform': self.wholeSceneTransform.GetID(),
+                   #'outputVolume': self.currentResult.rigidVolume.GetID(),
+                   'maskProcessingMode': "ROI",
+                   'useRigid': True,
+                   'useAffine': False,
+                   'useBSpline': False,
+                   'useScaleVersor3D': False,
+                   'useScaleSkewVersor3D': False,
+                   'useROIBSpline': False}
+    slicer.cli.run(slicer.modules.brainsfit, None, paramsRigid, wait_for_completion=True) 
+    
+  def markBoundaries(self):
+    editUtil = EditorLib.EditUtil.EditUtil()
+    parameterNode = editUtil.getParameterNode()
+    lm = slicer.app.layoutManager()
+    if self.histoLabelmap is None:
+      self.histoLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolume, 'Histo_Label_Map')
+    #lm.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(self.dataManager.getMRI().GetID())
+    lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoLabelmap.GetID())
+    paintEffectOptions = EditorLib.PaintEffectOptions()
+    paintEffectOptions.setMRMLDefaults()
+    paintEffectOptions.__del__()
+    #slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.dataManager.getMRI(), 'prostateLabelMap')
+    editUtil.setLabel(self.labelMapValues['PROSTATE'])
+    #self.delayDisplay('Paint radius is %s' % parameterNode.GetParameter('PaintEffect,radius'))
+    sliceWidget = lm.sliceWidget('Histology')
+    size = min(sliceWidget.width,sliceWidget.height)
+    step = size / 12
+    center = size / 2
+    parameterNode.SetParameter('PaintEffect,radius', '5')
+    paintTool = EditorLib.PaintEffectTool(sliceWidget)
+    
+    
+  def setMouseModeBack(self):
+    interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
+    interactionNode.SwitchToViewTransformMode()
+    # also turn off place mode persistence if required
+    interactionNode.SetPlaceModePersistence(0)
 
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
