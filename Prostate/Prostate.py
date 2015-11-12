@@ -162,14 +162,14 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.alignButton.toolTip = "Rotate to Volume Plane."
     self.alignButton.name = "AlignVolumes"
     loadDataFormLayout.addWidget(self.alignButton)
-    self.alignButton.connect('clicked()', dm.alignSlices)	
+    self.alignButton.connect('clicked()', self.logic.alignSlices)	
     
     self.positionSliderWidget = slicer.qMRMLTransformSliders()
     self.positionSliderWidget.Title = 'Position'
     self.positionSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.TRANSLATION
     self.positionSliderWidget.CoordinateReference = slicer.qMRMLTransformSliders.LOCAL
     self.positionSliderWidget.setMRMLScene(slicer.mrmlScene)
-    dm.setPositionSliderWidget(self.positionSliderWidget)
+    self.logic.setPositionSliderWidget(self.positionSliderWidget)
     #self.positionSliderWidget.setMRMLTransformNode(slicer.util.getNode(self.transformNode.GetID()))
     loadDataFormLayout.addRow("Translation", self.positionSliderWidget)    
     
@@ -184,7 +184,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.orientationSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.ROTATION
     self.orientationSliderWidget.CoordinateReference=slicer.qMRMLTransformSliders.LOCAL
     self.orientationSliderWidget.minMaxVisible = False
-    dm.setOrientationSliderWidget(self.orientationSliderWidget)
+    self.logic.setOrientationSliderWidget(self.orientationSliderWidget)
     #self.orientationSliderWidget.setMRMLTransformNode(self.getPivotToRasTransformNode())
     loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
     
@@ -192,7 +192,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.applyTransformButton.toolTip = "Saves the positioning of the histology slice."
     self.applyTransformButton.name = "ApplyTransform"
     loadDataFormLayout.addWidget(self.applyTransformButton)
-    self.applyTransformButton.connect('clicked()', dm.applyTransformation)
+    self.applyTransformButton.connect('clicked()', self.logic.applyTransformation)
     
 	#
 	# Bounding Box
@@ -306,6 +306,21 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     registrationCollapsibleButton.text = "Optimize Registration"
     self.layout.addWidget(registrationCollapsibleButton)
     registrationFormLayout = qt.QFormLayout(registrationCollapsibleButton)
+    
+    self.histologymaskGroup = qt.QGroupBox("Add Mask for Histology")
+    self.layout.addWidget(self.histologymaskGroup)
+    self.converthistologyButton = qt.QPushButton("Convert Histology to Greyscale")
+    self.converthistologyButton.connect('clicked()', self.logic.convertHistology)
+    histologymaskLayout = qt.QFormLayout(self.histologymaskGroup)
+    histologymaskLayout.addWidget(self.converthistologyButton)
+    
+    self.registrationGroup = qt.QGroupBox("Register MRI with histology")
+    self.layout.addWidget(self.registrationGroup)
+    self.registrationButton = qt.QPushButton("Apply Registration")
+    self.registrationButton.connect('clicked()', self.logic.applyRegistration)
+    registrationmaskLayout = qt.QFormLayout(self.registrationGroup)
+    registrationmaskLayout.addWidget(self.registrationButton)
+    
 
   def onSelect(self):
     self.applyButton.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
@@ -331,6 +346,61 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
   Uses ScriptedLoadableModuleLogic base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
+  
+  layout = ("<layout type=\"vertical\" split=\"true\" >"
+                  " <item>"
+      "  <layout type=\"horizontal\">"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Main\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">R</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#F34A33</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <layout type=\"horizontal\">"
+      " <item>"
+      "  <layout type=\"vertical\">"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Coronal\">"
+      "   <property name=\"orientation\" action=\"default\">Sagittal</property>"
+      "   <property name=\"viewlabel\" action=\"default\">Y</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Sagittal\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">G</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#6EB04B</property>"
+      "  </view>"
+      " </item>"
+      " </layout>"     
+      " </item>"
+      " </layout>"     
+      " </item>"
+      "</layout>"
+      " </item>"
+      " <item>"
+      "  <layout type=\"horizontal\">"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Axial\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">Y</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#EDD54C</property>"
+      "  </view>"
+      " </item>"
+      " <item>"
+      "  <view class=\"vtkMRMLSliceNode\" singletontag=\"Histology\">"
+      "   <property name=\"orientation\" action=\"default\">Axial</property>"
+      "   <property name=\"viewlabel\" action=\"default\">G</property>"
+      "   <property name=\"viewcolor\" action=\"default\">#6EB04B</property>"
+      "  </view>"
+      " </item>"
+      " </layout>"     
+      " </item>"
+      "</layout>")
+    
   def __init__(self, parent=None):
     self.mriVolume = None
     self.histoVolume = None
@@ -340,12 +410,17 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     self.histoLandmarks = None
     self.wholeSceneTransform = None
     self.mriTransform = None
+    self.transformNode = None
+    self.cameraNode = None
+    self.positionSliderWidget = None
+    self.orientationSliderWidget = None
+    self.roiLabelMap = None
 
   def loadMRIVolume(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
     #if (volumeLoaded):
     self.mriVolume = slicer.util.getNode('*ScalarVolumeNode*')
-    self.mriVolume.setName('MRI_Volume')
+    self.mriVolume.SetName('MRI_Volume')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
@@ -358,7 +433,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     volumeLoaded = slicer.util.openAddVolumeDialog()
     #if (volumeLoaded):
     self.histoVolume = slicer.util.getNode('*VectorVolumeNode*')
-    self.histoVolume.setName('Histo_Volume')
+    self.histoVolume.SetName('Histo_Volume')
     if (self.checkLoaded()):
       self.alignSlices()
       self.setupTransform()
@@ -366,6 +441,169 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
   def getHistologyVolume(self):
     if self.histoVolume is not None:
         return self.histoVolume
+
+  def alignSlices(self):
+    '''Aligns the Histology to the MRI slide.'''
+    self.setLayout()
+    if (not self.checkLoaded()):
+      return
+  
+    volumeNodes = slicer.util.getNodes('*VolumeNode*').values()
+    if (len(volumeNodes) == 0):
+      return
+  
+    sliceNodes = slicer.util.getNodes('vtkMRMLSliceNode*').values()
+    for node in sliceNodes:
+      node.RotateToVolumePlane(volumeNodes[0])
+      
+    # Main view with both MRI and histology
+    node = slicer.app.layoutManager().sliceWidget('Main').sliceLogic().GetSliceCompositeNode()
+    
+    node.SetForegroundVolumeID(self.histoVolume.GetID())
+    node.SetForegroundOpacity(0.5)
+    node.SetBackgroundVolumeID(self.mriVolume.GetID())      
+    slicer.app.layoutManager().sliceWidget('Main').sliceLogic().FitSliceToAll() 
+
+    # MRI only view
+    node = slicer.app.layoutManager().sliceWidget('Axial').sliceLogic().GetSliceCompositeNode()
+    node.SetForegroundVolumeID(None)
+    node.SetBackgroundVolumeID(self.mriVolume.GetID())
+    slicer.app.layoutManager().sliceWidget('Axial').sliceLogic().FitSliceToAll()
+    node = slicer.util.getNode('*SliceNodeAxial*')
+    node.SetOrientationToAxial()
+    node.RotateToVolumePlane(volumeNodes[0])
+    
+    # Histology only view
+    node = slicer.app.layoutManager().sliceWidget('Histology').sliceLogic().GetSliceCompositeNode()
+    node.SetBackgroundVolumeID(self.histoVolume.GetID())
+    node.SetLabelVolumeID(None)
+    node = slicer.util.getNode('*SliceNodeHistology*')
+    node.SetOrientationToAxial()
+    node.RotateToVolumePlane(volumeNodes[0])
+    
+    # Coronal view
+    node = slicer.app.layoutManager().sliceWidget('Coronal').sliceLogic().GetSliceCompositeNode()
+    node.SetForegroundVolumeID(self.histoVolume.GetID())
+    node.SetBackgroundVolumeID(self.mriVolume.GetID())
+    node.SetForegroundOpacity(0.5)
+    node = slicer.util.getNode('*SliceNodeCoronal*')
+    node.SetOrientationToCoronal()
+    slicer.app.layoutManager().sliceWidget('Coronal').sliceLogic().FitSliceToAll()
+    node.RotateToVolumePlane(volumeNodes[0])    
+    
+    # Sagittal view
+    node = slicer.app.layoutManager().sliceWidget('Sagittal').sliceLogic().GetSliceCompositeNode()
+    node.SetForegroundVolumeID(self.histoVolume.GetID())
+    node.SetBackgroundVolumeID(self.mriVolume.GetID())
+    node.SetForegroundOpacity(0.5)
+    node = slicer.util.getNode('*SliceNodeSagittal*')
+    node.SetOrientationToSagittal()
+    slicer.app.layoutManager().sliceWidget('Sagittal').sliceLogic().FitSliceToAll()
+    node.RotateToVolumePlane(volumeNodes[0])
+    
+    slicer.app.layoutManager().sliceWidget('Histology').fitSliceToBackground()
+    mainNode = slicer.app.layoutManager().sliceWidget('Main').sliceLogic().GetSliceCompositeNode()
+    histoOffset = slicer.app.layoutManager().sliceWidget('Histology').sliceLogic().GetSliceOffset()
+    print(histoOffset)
+    print(type(histoOffset))
+    node = slicer.util.getNode('*SliceNodeMain*')
+    node.SetSliceOffset(float(histoOffset))
+    node = slicer.util.getNode('*SliceNodeHistology*')
+    node.SetSliceOffset(float(histoOffset))
+    node = slicer.util.getNode('*SliceNodeAxial*')
+    node.SetSliceOffset(float(histoOffset))
+
+  def setupTransform(self):
+    self.cameraNode = slicer.util.getNode('*CameraNode*')
+    self.transformNode = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
+    self.transformNode.SetName('MRI_Transform')
+    self.mriVolume.SetAndObserveTransformNodeID(self.transformNode.GetID())    
+    self.positionSliderWidget.setMRMLTransformNode(slicer.util.getNode(self.transformNode.GetID()))  
+    self.orientationSliderWidget.setMRMLTransformNode(slicer.util.getNode(self.transformNode.GetID()))  
+
+  def setPositionSliderWidget(self, positionSliderWidget):
+    self.positionSliderWidget = positionSliderWidget
+          
+  def setOrientationSliderWidget(self, orientationSliderWidget):
+    self.orientationSliderWidget = orientationSliderWidget        
+          
+  def checkLoaded(self):
+    '''Checks if both the Histology and MRI are loaded.'''
+    if (self.mriVolume is not None and self.histoVolume is not None):
+      return True
+    else:
+      return False
+  
+  def createROILabelMap(self):
+    if self.roiLabelMap is None:
+      self.roiLabelMap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.getMRI(), 'prostateLabelMap')
+
+  def getROILabelMap(self):
+    if self.roiLabelMap is not None:
+      return self.roiLabelMap
+  
+  def applyTransformation(self):
+    if (self.transformNode is not None):
+      print('bla')
+      logic = slicer.vtkSlicerTransformLogic()
+      logic.hardenTransform(self.mriVolume)
+      
+  def setLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    self.customLayoutId = 502
+    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.customLayoutId, self.layout)                                         
+    layoutManager.setLayout(self.customLayoutId)
+    
+  def convertHistology(self):
+    node = slicer.mrmlScene.AddNode(slicer.vtkMRMLScalarVolumeNode())
+    node.SetName('Histo_Volume_BW')
+    params = {'inputVolume': slicer.util.getNode('Histo_Volume'), 'outputVolume': node}
+    # run vectortoscalarvolume-CLI Module
+    slicer.cli.run(slicer.modules.vectortoscalarvolume, None, params, wait_for_completion=True)
+    # check for input data
+    '''
+    inputVolume = params['InputVolume']
+    outputVolume = params['OutputVolume']
+    if not (inputVolume and outputVolume):
+      qt.QMessageBox.critical(
+          slicer.util.mainWindow(),
+          'Luminance', 'Input and output volumes are required for conversion')
+      return
+    # check that data has enough components
+    inputImage = inputVolume.GetImageData()
+    if not inputImage or inputImage.GetNumberOfScalarComponents() < 3:
+      qt.QMessageBox.critical(
+          slicer.util.mainWindow(),
+          'Vector to Scalar Volume', 'Input does not have enough components for conversion')
+      return
+    # run the filter
+    # - extract the RGB portions
+    extract = vtk.vtkImageExtractComponents()
+    extract.SetComponents(0,1,2)
+    luminance = vtk.vtkImageLuminance()
+    if vtk.VTK_MAJOR_VERSION <= 5:
+      extract.SetInput(inputVolume.GetImageData())
+      luminance.SetInput(extract.GetOutput())
+      luminance.GetOutput().Update()
+    else:
+      extract.SetInputConnection(inputVolume.GetImageDataConnection())
+      luminance.SetInputConnection(extract.GetOutputPort())
+      luminance.Update()
+    ijkToRAS = vtk.vtkMatrix4x4()
+    inputVolume.GetIJKToRASMatrix(ijkToRAS)
+    outputVolume.SetIJKToRASMatrix(ijkToRAS)
+    if vtk.VTK_MAJOR_VERSION <= 5:
+      outputVolume.SetAndObserveImageData(luminance.GetOutput())
+    else:
+      outputVolume.SetImageDataConnection(luminance.GetOutputPort())
+    # make the output volume appear in all the slice views
+    selectionNode = slicer.app.applicationLogic().GetSelectionNode()
+    selectionNode.SetReferenceActiveVolumeID(outputVolume.GetID())
+    slicer.app.applicationLogic().PropagateVolumeSelection(0)  
+    '''
+      
+  def applyRegistration(self):
+    return None  
 
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
@@ -830,7 +1068,7 @@ class LandmarkManager():
         #slicer.mrmlScene.AddNode(outputLabelMap)
 
         # define params
-        params = {'sampleDistance': 0.1, 'labelValue': 5, 'InputVolume': slicer.util.getNode('CTChest'),
+        params = {'sampleDistance': 0.1, 'labelValue': 5, 'InputVolume': slicer.util.getNode('MRI_Volume'),
                   'surface': self.clippingModelNode.GetID(), 'OutputVolume': outputLabelMap.GetID()}
 
         # run ModelToLabelMap-CLI Module
