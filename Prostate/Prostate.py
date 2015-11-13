@@ -49,121 +49,293 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     ScriptedLoadableModuleWidget.setup(self)
     # Instantiate and connect widgets ...
 
-    #
-    # Parameters Area
-    #
-    parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
-    self.layout.addWidget(parametersCollapsibleButton)
-
-    # Layout within the dummy collapsible button
-    parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-
-    #
-    # input volume selector
-    #
-    self.inputSelector = slicer.qMRMLNodeComboBox()
-    self.inputSelector.nodeTypes = (("vtkMRMLScalarVolumeNode"), "")
-    self.inputSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
-    self.inputSelector.selectNodeUponCreation = True
-    self.inputSelector.addEnabled = False
-    self.inputSelector.removeEnabled = False
-    self.inputSelector.noneEnabled = False
-    self.inputSelector.showHidden = False
-    self.inputSelector.showChildNodeTypes = False
-    self.inputSelector.setMRMLScene(slicer.mrmlScene)
-    self.inputSelector.setToolTip("Pick the input to the algorithm.")
-    parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
-
-    #
-    # output volume selector
-    #
-    self.outputSelector = slicer.qMRMLNodeComboBox()
-    self.outputSelector.nodeTypes = (("vtkMRMLScalarVolumeNode"), "")
-    self.outputSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
-    self.outputSelector.selectNodeUponCreation = False
-    self.outputSelector.addEnabled = True
-    self.outputSelector.removeEnabled = True
-    self.outputSelector.noneEnabled = False
-    self.outputSelector.showHidden = False
-    self.outputSelector.showChildNodeTypes = False
-    self.outputSelector.setMRMLScene(slicer.mrmlScene)
-    self.outputSelector.setToolTip("Pick the output to the algorithm.")
-    parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
-    #
-    # check box to trigger taking screen shots for later use in tutorials
-    #
-    self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-    self.enableScreenshotsFlagCheckBox.checked = 0
-    self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-    #
-    # scale factor for screen shots
-    #
-    self.screenshotScaleFactorSliderWidget = ctk.ctkSliderWidget()
-    self.screenshotScaleFactorSliderWidget.singleStep = 1.0
-    self.screenshotScaleFactorSliderWidget.minimum = 1.0
-    self.screenshotScaleFactorSliderWidget.maximum = 50.0
-    self.screenshotScaleFactorSliderWidget.value = 1.0
-    self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
-    parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
-
-    #
-    # Apply Button
-    #
-    self.applyButton = qt.QPushButton("Apply")
-    self.applyButton.toolTip = "Run the algorithm."
-    self.applyButton.enabled = False
-    parametersFormLayout.addRow(self.applyButton)
-
-    # connections
-    self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+#     #
+#     # Parameters Area
+#     #
+#     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
+#     parametersCollapsibleButton.text = "Parameters"
+#     self.layout.addWidget(parametersCollapsibleButton)
+# 
+#     # Layout within the dummy collapsible button
+#     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+# 
+#     #
+#     # input volume selector
+#     #
+#     self.inputSelector = slicer.qMRMLNodeComboBox()
+#     self.inputSelector.nodeTypes = (("vtkMRMLScalarVolumeNode"), "")
+#     self.inputSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
+#     self.inputSelector.selectNodeUponCreation = True
+#     self.inputSelector.addEnabled = False
+#     self.inputSelector.removeEnabled = False
+#     self.inputSelector.noneEnabled = False
+#     self.inputSelector.showHidden = False
+#     self.inputSelector.showChildNodeTypes = False
+#     self.inputSelector.setMRMLScene(slicer.mrmlScene)
+#     self.inputSelector.setToolTip("Pick the input to the algorithm.")
+#     parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
+# 
+#     #
+#     # output volume selector
+#     #
+#     self.outputSelector = slicer.qMRMLNodeComboBox()
+#     self.outputSelector.nodeTypes = (("vtkMRMLScalarVolumeNode"), "")
+#     self.outputSelector.addAttribute("vtkMRMLScalarVolumeNode", "LabelMap", 0)
+#     self.outputSelector.selectNodeUponCreation = False
+#     self.outputSelector.addEnabled = True
+#     self.outputSelector.removeEnabled = True
+#     self.outputSelector.noneEnabled = False
+#     self.outputSelector.showHidden = False
+#     self.outputSelector.showChildNodeTypes = False
+#     self.outputSelector.setMRMLScene(slicer.mrmlScene)
+#     self.outputSelector.setToolTip("Pick the output to the algorithm.")
+#     parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
+# 
+#     #
+#     # check box to trigger taking screen shots for later use in tutorials
+#     #
+#     self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
+#     self.enableScreenshotsFlagCheckBox.checked = 0
+#     self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
+#     parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
+# 
+#     #
+#     # scale factor for screen shots
+#     #
+#     self.screenshotScaleFactorSliderWidget = ctk.ctkSliderWidget()
+#     self.screenshotScaleFactorSliderWidget.singleStep = 1.0
+#     self.screenshotScaleFactorSliderWidget.minimum = 1.0
+#     self.screenshotScaleFactorSliderWidget.maximum = 50.0
+#     self.screenshotScaleFactorSliderWidget.value = 1.0
+#     self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
+#     parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
+# 
+#     #
+#     # Apply Button
+#     #
+#     self.applyButton = qt.QPushButton("Apply")
+#     self.applyButton.toolTip = "Run the algorithm."
+#     self.applyButton.enabled = False
+#     parametersFormLayout.addRow(self.applyButton)
+# 
+#     # connections
+#     self.applyButton.connect('clicked(bool)', self.onApplyButton)
+#     self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+#     self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
     # self.layout.addStretch(1)
 	
-	#
-	# Load Data
-	#
-    dm = DataManager()
-    loadDataCollapsibleButton = ctk.ctkCollapsibleButton()
-    loadDataCollapsibleButton.text = "Load Data"
-    self.layout.addWidget(loadDataCollapsibleButton)
-    loadDataFormLayout = qt.QFormLayout(loadDataCollapsibleButton)
-	
-	# Load MRI Button
-	
+# 	#
+# 	# Load Data
+# 	#
+#     dm = DataManager()
+#     loadDataCollapsibleButton = ctk.ctkCollapsibleButton()
+#     loadDataCollapsibleButton.text = "Load Data"
+#     self.layout.addWidget(loadDataCollapsibleButton)
+#     loadDataFormLayout = qt.QFormLayout(loadDataCollapsibleButton)
+# 	
+# 	# Load MRI Button
+# 	
+#     self.loadMRIButton = qt.QPushButton("Load MRI")
+#     self.loadMRIButton.toolTip = "Load the MRI File."
+#     self.loadMRIButton.name = "LoadMRI"
+#     loadDataFormLayout.addWidget(self.loadMRIButton)
+#     self.loadMRIButton.connect('clicked()', self.logic.loadMRIVolume)
+# 
+# 	# Load Histology Button
+# 	
+#     self.loadHistologyButton = qt.QPushButton("Load Histology")
+#     self.loadHistologyButton.toolTip = "Load the Histology File."
+#     self.loadHistologyButton.name = "LoadHistology"
+#     loadDataFormLayout.addWidget(self.loadHistologyButton)
+#     self.loadHistologyButton.connect('clicked()', self.logic.loadHistologyVolume)
+# 	
+#     '''lm = slicer.app.layoutManager()
+#     red = lm.sliceWidget('Red')
+#     redLogic = red.sliceLogic()
+#     # Print current slice offset position
+#     print redLogic.GetSliceOffset()
+#     # Change slice position
+#     redLogic.SetSliceOffset(20)'''
+#     self.alignButton = qt.QPushButton("Align Volumes")
+#     self.alignButton.toolTip = "Rotate to Volume Plane."
+#     self.alignButton.name = "AlignVolumes"
+#     loadDataFormLayout.addWidget(self.alignButton)
+#     self.alignButton.connect('clicked()', self.logic.alignSlices)	
+#     
+#     self.positionSliderWidget = slicer.qMRMLTransformSliders()
+#     self.positionSliderWidget.Title = 'Position'
+#     self.positionSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.TRANSLATION
+#     self.positionSliderWidget.CoordinateReference = slicer.qMRMLTransformSliders.LOCAL
+#     self.positionSliderWidget.setMRMLScene(slicer.mrmlScene)
+#     self.logic.setPositionSliderWidget(self.positionSliderWidget)
+#     #self.positionSliderWidget.setMRMLTransformNode(slicer.util.getNode(self.transformNode.GetID()))
+#     loadDataFormLayout.addRow("Translation", self.positionSliderWidget)    
+#     
+#     self.orientationSliderWidget = slicer.qMRMLTransformSliders()
+#     self.orientationSliderWidget.Title = 'Orientation'
+#     self.orientationSliderWidget.setMRMLScene(slicer.mrmlScene)
+#     # Setting of qMRMLTransformSliders.TypeOfTransform is not robust: it has to be set after setMRMLScene and
+#     # has to be set twice (with setting the type to something else in between).
+#     # Therefore the following 3 lines are needed, and they are needed here:
+#     self.orientationSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.ROTATION
+#     self.orientationSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.TRANSLATION
+#     self.orientationSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.ROTATION
+#     self.orientationSliderWidget.CoordinateReference=slicer.qMRMLTransformSliders.LOCAL
+#     self.orientationSliderWidget.minMaxVisible = False
+#     self.logic.setOrientationSliderWidget(self.orientationSliderWidget)
+#     #self.orientationSliderWidget.setMRMLTransformNode(self.getPivotToRasTransformNode())
+#     loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
+#     
+#     self.applyTransformButton = qt.QPushButton("Apply")
+#     self.applyTransformButton.toolTip = "Saves the positioning of the histology slice."
+#     self.applyTransformButton.name = "ApplyTransform"
+#     loadDataFormLayout.addWidget(self.applyTransformButton)
+#     self.applyTransformButton.connect('clicked()', self.logic.applyTransformation)
+#     
+# 	#
+# 	# Bounding Box
+# 	#
+# 	
+#     boundingBoxCollapsibleButton = ctk.ctkCollapsibleButton()
+#     boundingBoxCollapsibleButton.text = "Mark Extents"
+#     self.layout.addWidget(boundingBoxCollapsibleButton)
+#     boundingBoxFormLayout = qt.QFormLayout(boundingBoxCollapsibleButton)
+# 	
+# 	#
+# 	# ROI definition
+# 	#
+# 	
+#     roiDefintitionCollapsibleButton = ctk.ctkCollapsibleButton()
+#     roiDefintitionCollapsibleButton.text = "ROI definition"
+#     self.layout.addWidget(roiDefintitionCollapsibleButton)
+#     roiDefintitionFormLayout = qt.QFormLayout(roiDefintitionCollapsibleButton)
+#     roiManager = ROIManager(dm)
+#     
+#     # Mark Prostate Button
+#     
+#     self.markProstateButton = qt.QPushButton("Mark Prostate")
+#     self.markProstateButton.toolTip = "Mark the boundaries of the prostate."
+#     self.markProstateButton.name = "MarkProstate"
+#     roiDefintitionFormLayout.addWidget(self.markProstateButton)
+#     self.markProstateButton.connect('clicked()', self.logic.markBoundaries)
+# 
+#     # Mark Urethra Button
+#     
+#     self.markUrethraButton = qt.QPushButton("Mark Urethra")
+#     self.markUrethraButton.toolTip = "Mark the boundaries of the urethra."
+#     self.markUrethraButton.name = "MarkUrethra"
+#     roiDefintitionFormLayout.addWidget(self.markUrethraButton)
+#     self.markUrethraButton.connect('clicked()', roiManager.markUrethra)
+# 	
+#     # Finished Marking Button
+#     
+#     self.finishedMarkingButton = qt.QPushButton("Finished Marking")
+#     self.finishedMarkingButton.toolTip = "Finished Marking"
+#     self.finishedMarkingButton.name = "FinishedMarking"
+#     roiDefintitionFormLayout.addWidget(self.finishedMarkingButton)
+#     self.finishedMarkingButton.connect('clicked()', self.logic.setMouseModeBack)
+#     
+#     # 
+#     
+#     #
+#     # PET/MR alignment
+# 	#
+# 	
+#     petMRIAlignmentCollapsibleButton = ctk.ctkCollapsibleButton()
+#     petMRIAlignmentCollapsibleButton.text = "PET/MR alignment"
+#     self.layout.addWidget(petMRIAlignmentCollapsibleButton)
+#     petMRAlignmentFormLayout = qt.QFormLayout(petMRIAlignmentCollapsibleButton)
+# 	
+#     #
+#     # Landmarking on histology and PET/MR
+# 	#
+# 	
+#     landmarksCollapsibleButton = ctk.ctkCollapsibleButton()
+#     landmarksCollapsibleButton.text = "Set Landmarks"
+#     self.layout.addWidget(landmarksCollapsibleButton)
+#     landmarksFormLayout = qt.QFormLayout(landmarksCollapsibleButton)
+#     landmarkManager = LandmarkManager(dm)
+#     
+#     # Set MRI Landmarks Button
+#     
+#     self.switchToLandmarksLayoutButton = qt.QPushButton("Switch to Landmarks Layout")
+#     self.switchToLandmarksLayoutButton.toolTip = "Switch to Landmarks Layout"
+#     self.switchToLandmarksLayoutButton.name = "SwitchToLandmarksLayout"
+#     landmarksFormLayout.addWidget(self.switchToLandmarksLayoutButton)
+#     self.switchToLandmarksLayoutButton.connect('clicked()', landmarkManager.setLayout)
+#     
+#     self.setMRILandmarksButton = qt.QPushButton("Set MRI Landmarks")
+#     self.setMRILandmarksButton.toolTip = "Set MRI Landmarks"
+#     self.setMRILandmarksButton.name = "SetMRILandmarks"
+#     landmarksFormLayout.addWidget(self.setMRILandmarksButton)
+#     self.setMRILandmarksButton.connect('clicked()', self.logic.setLandmarksForMRI)
+#     
+#     self.finishedMRIButton = qt.QPushButton("Finished MRI")
+#     self.finishedMRIButton.toolTip = "Finished MRI Landmarks"
+#     self.finishedMRIButton.name = "FinishedMRILandmarks"
+#     landmarksFormLayout.addWidget(self.finishedMRIButton)
+#     self.finishedMRIButton.connect('clicked()', self.logic.setMouseModeBack)
+#     
+#     # Set Histology Landmarks Button
+#     
+#     self.setHistoLandmarksButton = qt.QPushButton("Set Histology Landmarks")
+#     self.setHistoLandmarksButton.toolTip = "Set Histology Landmarks"
+#     self.setHistoLandmarksButton.name = "SetHistoLandmarks"
+#     landmarksFormLayout.addWidget(self.setHistoLandmarksButton)
+#     self.setHistoLandmarksButton.connect('clicked()', self.logic.setLandmarksForHisto)
+#     
+#     self.finishedHistoButton = qt.QPushButton("Finished Histo")
+#     self.finishedHistoButton.toolTip = "Finished MRI Landmarks"
+#     self.finishedHistoButton.name = "FinishedMRILandmarks"
+#     landmarksFormLayout.addWidget(self.finishedHistoButton)
+#     self.finishedHistoButton.connect('clicked()', self.logic.setMouseModeBack)
+#     
+#     self.generateMRIMaskButton = qt.QPushButton("Generate mask from MRI fiducials")
+#     self.generateMRIMaskButton.toolTip = "Generate a mask for the MRI volume out of the MRI landmarks"
+#     self.generateMRIMaskButton.name = "GenerateMRIMask"
+#     landmarksFormLayout.addWidget(self.generateMRIMaskButton)
+#     self.generateMRIMaskButton.connect('clicked()', self.logic.generateMRIMask)
+# 	
+# 	#
+#     # Registration Optimization
+# 	#
+# 	
+#     registrationCollapsibleButton = ctk.ctkCollapsibleButton()
+#     registrationCollapsibleButton.text = "Optimize Registration"
+#     self.layout.addWidget(registrationCollapsibleButton)
+#     registrationFormLayout = qt.QFormLayout(registrationCollapsibleButton)
+    
+    self.loaddataGroup = qt.QGroupBox("Load Data")
+    self.layout.addWidget(self.loaddataGroup)
+    loaddataLayout = qt.QGridLayout(self.loaddataGroup)
+    
+    self.loaddataLabel = qt.QLabel("1.")
+    loaddataLayout.addWidget(self.loaddataLabel, 0, 0)
     self.loadMRIButton = qt.QPushButton("Load MRI")
     self.loadMRIButton.toolTip = "Load the MRI File."
     self.loadMRIButton.name = "LoadMRI"
-    loadDataFormLayout.addWidget(self.loadMRIButton)
+    loaddataLayout.addWidget(self.loadMRIButton, 0, 1)
+    self.loaddataLabel = qt.QLabel("2.")
+    loaddataLayout.addWidget(self.loaddataLabel, 1, 0)
     self.loadMRIButton.connect('clicked()', self.logic.loadMRIVolume)
-
-	# Load Histology Button
-	
     self.loadHistologyButton = qt.QPushButton("Load Histology")
     self.loadHistologyButton.toolTip = "Load the Histology File."
     self.loadHistologyButton.name = "LoadHistology"
-    loadDataFormLayout.addWidget(self.loadHistologyButton)
+    loaddataLayout.addWidget(self.loadHistologyButton, 1, 1)
+    self.loaddataLabel = qt.QLabel("3.")
+    loaddataLayout.addWidget(self.loaddataLabel, 2, 0)
     self.loadHistologyButton.connect('clicked()', self.logic.loadHistologyVolume)
-	
-    '''lm = slicer.app.layoutManager()
-    red = lm.sliceWidget('Red')
-    redLogic = red.sliceLogic()
-    # Print current slice offset position
-    print redLogic.GetSliceOffset()
-    # Change slice position
-    redLogic.SetSliceOffset(20)'''
     self.alignButton = qt.QPushButton("Align Volumes")
     self.alignButton.toolTip = "Rotate to Volume Plane."
     self.alignButton.name = "AlignVolumes"
-    loadDataFormLayout.addWidget(self.alignButton)
-    self.alignButton.connect('clicked()', self.logic.alignSlices)	
+    loaddataLayout.addWidget(self.alignButton, 2, 1)
+    self.alignButton.connect('clicked()', self.logic.alignSlices)    
     
+    self.initialalignmentGroup = qt.QGroupBox("Initial Alignment of the histology")
+    self.layout.addWidget(self.initialalignmentGroup)
+    initialalignmentForm = qt.QGridLayout(self.initialalignmentGroup)
     self.positionSliderWidget = slicer.qMRMLTransformSliders()
     self.positionSliderWidget.Title = 'Position'
     self.positionSliderWidget.TypeOfTransform = slicer.qMRMLTransformSliders.TRANSLATION
@@ -171,7 +343,8 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.positionSliderWidget.setMRMLScene(slicer.mrmlScene)
     self.logic.setPositionSliderWidget(self.positionSliderWidget)
     #self.positionSliderWidget.setMRMLTransformNode(slicer.util.getNode(self.transformNode.GetID()))
-    loadDataFormLayout.addRow("Translation", self.positionSliderWidget)    
+    #loadDataFormLayout.addRow("Translation", self.positionSliderWidget)
+    initialalignmentForm.addWidget(self.positionSliderWidget, 0, 0)    
     
     self.orientationSliderWidget = slicer.qMRMLTransformSliders()
     self.orientationSliderWidget.Title = 'Orientation'
@@ -186,133 +359,63 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.orientationSliderWidget.minMaxVisible = False
     self.logic.setOrientationSliderWidget(self.orientationSliderWidget)
     #self.orientationSliderWidget.setMRMLTransformNode(self.getPivotToRasTransformNode())
-    loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
+    #loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
+    initialalignmentForm.addWidget(self.orientationSliderWidget, 1, 0)
     
     self.applyTransformButton = qt.QPushButton("Apply")
     self.applyTransformButton.toolTip = "Saves the positioning of the histology slice."
     self.applyTransformButton.name = "ApplyTransform"
-    loadDataFormLayout.addWidget(self.applyTransformButton)
+    #loadDataFormLayout.addWidget(self.applyTransformButton)
+    initialalignmentForm.addWidget(self.applyTransformButton, 2, 0)
     self.applyTransformButton.connect('clicked()', self.logic.applyTransformation)
     
-	#
-	# Bounding Box
-	#
-	
-    boundingBoxCollapsibleButton = ctk.ctkCollapsibleButton()
-    boundingBoxCollapsibleButton.text = "Mark Extents"
-    self.layout.addWidget(boundingBoxCollapsibleButton)
-    boundingBoxFormLayout = qt.QFormLayout(boundingBoxCollapsibleButton)
-	
-	#
-	# ROI definition
-	#
-	
-    roiDefintitionCollapsibleButton = ctk.ctkCollapsibleButton()
-    roiDefintitionCollapsibleButton.text = "ROI definition"
-    self.layout.addWidget(roiDefintitionCollapsibleButton)
-    roiDefintitionFormLayout = qt.QFormLayout(roiDefintitionCollapsibleButton)
-    roiManager = ROIManager(dm)
+    self.histologymaskGroup = qt.QGroupBox("Add Mask for Histology")
+    self.layout.addWidget(self.histologymaskGroup)
+    self.converthistologyLabel = qt.QLabel("1.")
+    histologymaskLayout = qt.QGridLayout(self.histologymaskGroup)
+    self.converthistologyButton = qt.QPushButton("Convert Histology to Greyscale")
+    self.converthistologyButton.connect('clicked()', self.logic.convertHistology)
+    histologymaskLayout.addWidget(self.converthistologyButton, 0, 1)
+    histologymaskLayout.addWidget(self.converthistologyLabel, 0, 0)
     
-    # Mark Prostate Button
     
-    self.markProstateButton = qt.QPushButton("Mark Prostate")
-    self.markProstateButton.toolTip = "Mark the boundaries of the prostate."
-    self.markProstateButton.name = "MarkProstate"
-    roiDefintitionFormLayout.addWidget(self.markProstateButton)
+    self.markprostateLabel = qt.QLabel("2.")
+    histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
+    self.markProstateButton = qt.QPushButton("Mark Histology")
+    self.markProstateButton.toolTip = "Mark the boundaries of the histology."
+    self.markProstateButton.name = "MarkHistology"
+    histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
     self.markProstateButton.connect('clicked()', self.logic.markBoundaries)
-
-    # Mark Urethra Button
     
-    self.markUrethraButton = qt.QPushButton("Mark Urethra")
-    self.markUrethraButton.toolTip = "Mark the boundaries of the urethra."
-    self.markUrethraButton.name = "MarkUrethra"
-    roiDefintitionFormLayout.addWidget(self.markUrethraButton)
-    self.markUrethraButton.connect('clicked()', roiManager.markUrethra)
-	
-    # Finished Marking Button
-    
-    self.finishedMarkingButton = qt.QPushButton("Finished Marking")
-    self.finishedMarkingButton.toolTip = "Finished Marking"
-    self.finishedMarkingButton.name = "FinishedMarking"
-    roiDefintitionFormLayout.addWidget(self.finishedMarkingButton)
-    self.finishedMarkingButton.connect('clicked()', self.logic.setMouseModeBack)
-    
-    # 
-    
-    #
-    # PET/MR alignment
-	#
-	
-    petMRIAlignmentCollapsibleButton = ctk.ctkCollapsibleButton()
-    petMRIAlignmentCollapsibleButton.text = "PET/MR alignment"
-    self.layout.addWidget(petMRIAlignmentCollapsibleButton)
-    petMRAlignmentFormLayout = qt.QFormLayout(petMRIAlignmentCollapsibleButton)
-	
-    #
-    # Landmarking on histology and PET/MR
-	#
-	
-    landmarksCollapsibleButton = ctk.ctkCollapsibleButton()
-    landmarksCollapsibleButton.text = "Set Landmarks"
-    self.layout.addWidget(landmarksCollapsibleButton)
-    landmarksFormLayout = qt.QFormLayout(landmarksCollapsibleButton)
-    landmarkManager = LandmarkManager(dm)
-    
-    # Set MRI Landmarks Button
-    
-    self.switchToLandmarksLayoutButton = qt.QPushButton("Switch to Landmarks Layout")
-    self.switchToLandmarksLayoutButton.toolTip = "Switch to Landmarks Layout"
-    self.switchToLandmarksLayoutButton.name = "SwitchToLandmarksLayout"
-    landmarksFormLayout.addWidget(self.switchToLandmarksLayoutButton)
-    self.switchToLandmarksLayoutButton.connect('clicked()', landmarkManager.setLayout)
+    self.markmriGroup = qt.QGroupBox("Add Mask for MRI")
+    self.layout.addWidget(self.markmriGroup)
+    markmriLayout = qt.QGridLayout(self.markmriGroup)
+    self.setlandmarksLabel = qt.QLabel("1.")
+    markmriLayout.addWidget(self.setlandmarksLabel, 0, 0)
     
     self.setMRILandmarksButton = qt.QPushButton("Set MRI Landmarks")
     self.setMRILandmarksButton.toolTip = "Set MRI Landmarks"
     self.setMRILandmarksButton.name = "SetMRILandmarks"
-    landmarksFormLayout.addWidget(self.setMRILandmarksButton)
-    self.setMRILandmarksButton.connect('clicked()', landmarkManager.setLandmarksForMRI)
+    markmriLayout.addWidget(self.setMRILandmarksButton, 0, 1)
+    self.setMRILandmarksButton.connect('clicked()', self.logic.setLandmarksForMRI)
     
-    self.finishedMRIButton = qt.QPushButton("Finished MRI")
+    self.setlandmarksLabel = qt.QLabel("2.")
+    markmriLayout.addWidget(self.setlandmarksLabel, 1, 0)
+    
+    self.finishedMRIButton = qt.QPushButton("Finished")
     self.finishedMRIButton.toolTip = "Finished MRI Landmarks"
     self.finishedMRIButton.name = "FinishedMRILandmarks"
-    landmarksFormLayout.addWidget(self.finishedMRIButton)
-    self.finishedMRIButton.connect('clicked()', landmarkManager.setMouseModeBack)
+    markmriLayout.addWidget(self.finishedMRIButton, 1, 1)
+    self.finishedMRIButton.connect('clicked()', self.logic.setMouseModeBack)
     
-    # Set Histology Landmarks Button
+    self.setlandmarksLabel = qt.QLabel("3.")
+    markmriLayout.addWidget(self.setlandmarksLabel, 2, 0)
     
-    self.setHistoLandmarksButton = qt.QPushButton("Set Histology Landmarks")
-    self.setHistoLandmarksButton.toolTip = "Set Histology Landmarks"
-    self.setHistoLandmarksButton.name = "SetHistoLandmarks"
-    landmarksFormLayout.addWidget(self.setHistoLandmarksButton)
-    self.setHistoLandmarksButton.connect('clicked()', landmarkManager.setLandmarksForHisto)
-    
-    self.finishedHistoButton = qt.QPushButton("Finished Histo")
-    self.finishedHistoButton.toolTip = "Finished MRI Landmarks"
-    self.finishedHistoButton.name = "FinishedMRILandmarks"
-    landmarksFormLayout.addWidget(self.finishedHistoButton)
-    self.finishedHistoButton.connect('clicked()', landmarkManager.setMouseModeBack)
-    
-    self.generateMRIMaskButton = qt.QPushButton("Generate mask from MRI fiducials")
+    self.generateMRIMaskButton = qt.QPushButton("Generate mask from landmarks")
     self.generateMRIMaskButton.toolTip = "Generate a mask for the MRI volume out of the MRI landmarks"
     self.generateMRIMaskButton.name = "GenerateMRIMask"
-    landmarksFormLayout.addWidget(self.generateMRIMaskButton)
-    self.generateMRIMaskButton.connect('clicked()', landmarkManager.generateMRIMask)
-	
-	#
-    # Registration Optimization
-	#
-	
-    registrationCollapsibleButton = ctk.ctkCollapsibleButton()
-    registrationCollapsibleButton.text = "Optimize Registration"
-    self.layout.addWidget(registrationCollapsibleButton)
-    registrationFormLayout = qt.QFormLayout(registrationCollapsibleButton)
-    
-    self.histologymaskGroup = qt.QGroupBox("Add Mask for Histology")
-    self.layout.addWidget(self.histologymaskGroup)
-    self.converthistologyButton = qt.QPushButton("Convert Histology to Greyscale")
-    self.converthistologyButton.connect('clicked()', self.logic.convertHistology)
-    histologymaskLayout = qt.QFormLayout(self.histologymaskGroup)
-    histologymaskLayout.addWidget(self.converthistologyButton)
+    markmriLayout.addWidget(self.generateMRIMaskButton, 2, 1)
+    self.generateMRIMaskButton.connect('clicked()', self.logic.generateMRIMask)
     
     self.registrationGroup = qt.QGroupBox("Register MRI with histology")
     self.layout.addWidget(self.registrationGroup)
@@ -404,6 +507,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
   def __init__(self, parent=None):
     self.mriVolume = None
     self.histoVolume = None
+    self.histoVolumeBW = None
     self.mriLabelmap = None
     self.histoLabelmap = None
     self.mriLandmarks = None
@@ -550,13 +654,14 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
   def convertHistology(self):
     node = slicer.mrmlScene.AddNode(slicer.vtkMRMLScalarVolumeNode())
     node.SetName('Histo_Volume_BW')
-    params = {'inputVolume': slicer.util.getNode('Histo_Volume'), 'outputVolume': node}
+    params = {'InputVolume': slicer.util.getNode('Histo_Volume'), 'OutputVolume': node}
+    #self.histoVolumeBW = node
     # run vectortoscalarvolume-CLI Module
-    slicer.cli.run(slicer.modules.vectortoscalarvolume, None, params, wait_for_completion=True)
+    #slicer.cli.run(slicer.modules.vectortoscalarvolume, None, params, wait_for_completion=True)
     # check for input data
-    '''
     inputVolume = params['InputVolume']
     outputVolume = params['OutputVolume']
+    # Code from Convert Vector to Scalar Volume Plugin
     if not (inputVolume and outputVolume):
       qt.QMessageBox.critical(
           slicer.util.mainWindow(),
@@ -592,23 +697,23 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     # make the output volume appear in all the slice views
     selectionNode = slicer.app.applicationLogic().GetSelectionNode()
     selectionNode.SetReferenceActiveVolumeID(outputVolume.GetID())
-    slicer.app.applicationLogic().PropagateVolumeSelection(0)  
-    '''
+    slicer.app.applicationLogic().PropagateVolumeSelection(0)
+    self.histoVolumeBW = outputVolume  
       
   def applyRegistration(self):
     print(self.histoVolume.GetID())
     print(self.mriVolume.GetID())
     if self.wholeSceneTransform is None:
         self.wholeSceneTransform = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
-    paramsRigid = {'fixedVolume': self.histoVolume,
+    paramsRigid = {'fixedVolume': self.histoVolumeBW,
                    'movingVolume': self.mriVolume,
                    'fixedBinaryVolume': self.histoLabelmap,
                    'movingBinaryVolume': self.mriLabelmap,
                    'outputTransform': self.wholeSceneTransform.GetID(),
                    #'outputVolume': self.currentResult.rigidVolume.GetID(),
                    'maskProcessingMode': "ROI",
-                   'useRigid': True,
-                   'useAffine': False,
+                   'useRigid': False,
+                   'useAffine': True,
                    'useBSpline': False,
                    'useScaleVersor3D': False,
                    'useScaleSkewVersor3D': False,
@@ -636,13 +741,71 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     parameterNode.SetParameter('PaintEffect,radius', '5')
     paintTool = EditorLib.PaintEffectTool(sliceWidget)
     
-    
   def setMouseModeBack(self):
     interactionNode = slicer.mrmlScene.GetNodeByID("vtkMRMLInteractionNodeSingleton")
     interactionNode.SwitchToViewTransformMode()
     # also turn off place mode persistence if required
     interactionNode.SetPlaceModePersistence(0)
+    
+  def __setMouseModeToFiducial(self):
+    placeModePersistence = 1
+    slicer.modules.markups.logic().StartPlaceMode(placeModePersistence)
+  
+  def createFiducialMap(self, name):
+    if slicer.util.getNode(name) is None:
+      fiducial = slicer.mrmlScene.AddNode(slicer.vtkMRMLMarkupsFiducialNode())
+      fiducial.SetName(name)
+              
+  def setLandmarksForMRI(self):
+    self.createFiducialMap('MRI_Landmarks')
+    self.__setMouseModeToFiducial()
+    
+  def setLandmarksForHisto(self):
+    self.createFiducialMap('Histo_Landmarks')
+    self.__setMouseModeToFiducial()
+    
+  def getFiducialList(self, name):
+    fidList = slicer.util.getNode(name)
+    numFids = fidList.GetNumberOfFiducials()
+    for i in range(numFids):
+      ras = [0,0,0]
+      fidList.GetNthFiducialPosition(i,ras)
+      # the world position is the RAS position with any transform matrices applied
+      world = [0,0,0,0]
+      fidList.GetNthFiducialWorldCoordinates(0,world)
+      print i,": RAS =",ras,", world =",world
+      
+  def setLayout(self):
+    layoutManager = slicer.app.layoutManager()
+    self.customLayoutId = 501
+    layoutManager.layoutLogic().GetLayoutNode().AddLayoutDescription(self.customLayoutId, self.layout)                                         
+    layoutManager.setLayout(self.customLayoutId)
+         
+  def generateMRIMask(self):
+    import VolumeClipWithModel
+    volumeClipLogic = VolumeClipWithModel.VolumeClipWithModelLogic()
+    self.clippingModelNode = slicer.vtkMRMLModelNode()
+    self.clippingModelNode.SetName('clipModelNode')
+    slicer.mrmlScene.AddNode(self.clippingModelNode)
+    volumeClipLogic.updateModelFromMarkup(slicer.util.getNode('MRI_Landmarks'), self.clippingModelNode)
+    outputLabelMap = slicer.vtkMRMLScalarVolumeNode()
+    name = ('MRIMask-label')
+    outputLabelMap.SetName(name)
+    slicer.mrmlScene.AddNode(outputLabelMap)
+    volumeLogic = slicer.modules.volumes.logic()
+    label = slicer.util.getNode('*MRIMask*')
+    volumeLogic.CreateAndAddLabelVolume(slicer.mrmlScene, label, 'MRI_Label_Map')
+    outputLabelMap = slicer.util.getNode('MRI_Label_Map')
+    self.mriLabelmap = outputLabelMap
+    #slicer.mrmlScene.AddNode(outputLabelMap)
 
+    # define params
+    params = {'sampleDistance': 0.1, 'labelValue': 5, 'InputVolume': slicer.util.getNode('MRI_Volume'),
+              'surface': self.clippingModelNode.GetID(), 'OutputVolume': outputLabelMap.GetID()}
+
+    # run ModelToLabelMap-CLI Module
+    slicer.cli.run(slicer.modules.modeltolabelmap, None, params, wait_for_completion=True)
+                
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
     returns true if the passed in volume
