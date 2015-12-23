@@ -4,6 +4,9 @@ import EditorLib
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 
+import SimpleITK as sitk
+import sitkUtils
+
 #
 # Prostate
 #
@@ -419,10 +422,15 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     
     self.registrationGroup = qt.QGroupBox("Register MRI with histology")
     self.layout.addWidget(self.registrationGroup)
-    self.registrationButton = qt.QPushButton("Apply Registration")
-    self.registrationButton.connect('clicked()', self.logic.applyRegistration)
+    
+    self.registrationButton1 = qt.QPushButton("Apply DistanceMap Registration")
+    self.registrationButton1.connect('clicked()', self.logic.applyDistanceMapRegistration)
     registrationmaskLayout = qt.QFormLayout(self.registrationGroup)
-    registrationmaskLayout.addWidget(self.registrationButton)
+    registrationmaskLayout.addWidget(self.registrationButton1)
+    
+    self.registrationButton2 = qt.QPushButton("Apply Rigid Grayvalue Registration")
+    self.registrationButton2.connect('clicked()', self.logic.applyRegistration)
+    registrationmaskLayout.addWidget(self.registrationButton2)
     
 
   def onSelect(self):
@@ -725,7 +733,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     parameterNode = editUtil.getParameterNode()
     lm = slicer.app.layoutManager()
     if self.histoLabelmap is None:
-      self.histoLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolume, 'Histo_Label_Map')
+      self.histoLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolumeBW, 'Histo_Label_Map')
     #lm.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(self.dataManager.getMRI().GetID())
     lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoLabelmap.GetID())
     paintEffectOptions = EditorLib.PaintEffectOptions()
@@ -805,6 +813,55 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
 
     # run ModelToLabelMap-CLI Module
     slicer.cli.run(slicer.modules.modeltolabelmap, None, params, wait_for_completion=True)
+  
+  def generateDistanceMap(self, labelID, smoothingSteps):
+    # Smooth label  
+    if smoothingSteps > 0:
+      smoothedLabelMap = sitkUtils.CreateNewVolumeNode(labelID.GetName()+'_Smoothed',overwrite=True)
+      storageNode = slicer.vtkMRMLNRRDStorageNode()
+      slicer.mrmlScene.AddNode(storageNode)
+      smoothedLabelMap.SetAndObserveStorageNodeID(storageNode.GetID())
+      initLabelMap = labelID
+      for i in range(0, smoothingSteps):
+        print(i)
+        smoothingParameters = {'inputImageName':initLabelMap.GetID(), 'outputImageName':smoothedLabelMap.GetID()}
+        cliNode = slicer.cli.run(slicer.modules.segmentationsmoothing, None, smoothingParameters, wait_for_completion = True)
+        initLabelMap = smoothedLabelMap          
+    # Set up filter  
+    dt = sitk.SignedMaurerDistanceMapImageFilter()
+    dt.SetSquaredDistance(False)
+    dt.SetUseImageSpacing(True)
+    dt.SetInsideIsPositive(False)
+    if smoothingSteps == 0:
+      labelAddress = sitkUtils.GetSlicerITKReadWriteAddress(labelID.GetName())
+    else:
+      labelAddress = sitkUtils.GetSlicerITKReadWriteAddress(smoothedLabelMap.GetName())
+    labelImage = sitk.ReadImage(labelAddress)
+    # Execute filter
+    distanceImage = dt.Execute(labelImage)
+    sitkUtils.PushToSlicer(distanceImage, labelID.GetName()+'_DistanceMap', overwrite=True)
+  
+  def applyDistanceMapRegistration(self):
+    self.generateDistanceMap(self.mriLabelmap, 2)
+    self.generateDistanceMap(self.histoLabelmap, 0)
+    histoDistanceMap = slicer.util.getNode(self.histoLabelmap.GetName()+'_DistanceMap')
+    mriDistanceMap = slicer.util.getNode(self.mriLabelmap.GetName()+'_DistanceMap')
+    distanceMapTransform = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
+    distanceMapTransform.SetName('DistanceMapTransform')
+    paramsRigid = {'fixedVolume': histoDistanceMap,
+                   'movingVolume': mriDistanceMap,
+                   'fixedBinaryVolume': self.histoLabelmap,
+                   'movingBinaryVolume': self.mriLabelmap,
+                   'outputTransform': distanceMapTransform.GetID(),
+                   #'outputVolume': self.currentResult.rigidVolume.GetID(),
+                   'maskProcessingMode': "ROI",
+                   'useRigid': False,
+                   'useAffine': True,
+                   'useBSpline': False,
+                   'useScaleVersor3D': False,
+                   'useScaleSkewVersor3D': False,
+                   'useROIBSpline': False}
+    slicer.cli.run(slicer.modules.brainsfit, None, paramsRigid, wait_for_completion=True) 
                 
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
