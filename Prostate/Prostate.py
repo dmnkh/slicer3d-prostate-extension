@@ -18,16 +18,15 @@ class Prostate(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Prostate"  # TODO make this more human readable by adding spaces
-    self.parent.categories = ["Examples"]
+    self.parent.title = "Prostate MRI/Histology Registration"  # TODO make this more human readable by adding spaces
+    self.parent.categories = ["Registration"]
     self.parent.dependencies = []
-    self.parent.contributors = ["John Doe (AnyWare Corp.)"]  # replace with "Firstname Lastname (Organization)"
+    self.parent.contributors = ["Dominik Hofer", "Matthew DiFranco"]  # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
-    This is an example of scripted loadable module bundled in an extension.
+    This module facilitates registration of prostate histology slices to MRI volumes.
     """
     self.parent.acknowledgementText = """
-    This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-    and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+    This file was originally developed by Dominik Hofer and Matthew DiFranco, Phd.
 """  # replace with organization, grant and thanks.
 
 #
@@ -330,7 +329,8 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.loaddataLabel = qt.QLabel("3.")
     loaddataLayout.addWidget(self.loaddataLabel, 2, 0)
     self.loadHistologyButton.connect('clicked()', self.logic.loadHistologyVolume)
-    self.alignButton = qt.QPushButton("Align Volumes")
+    self.alignButton = qt.QPushButton("Scroll to histology")
+    self.alignButton.setStyleSheet("background-color: #7CB567");
     self.alignButton.toolTip = "Rotate to Volume Plane."
     self.alignButton.name = "AlignVolumes"
     loaddataLayout.addWidget(self.alignButton, 2, 1)
@@ -365,7 +365,8 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     #loadDataFormLayout.addRow("Orientation", self.orientationSliderWidget)
     initialalignmentForm.addWidget(self.orientationSliderWidget, 1, 0)
     
-    self.applyTransformButton = qt.QPushButton("Apply")
+    self.applyTransformButton = qt.QPushButton("Apply Transformation")
+    self.applyTransformButton.setStyleSheet("background-color: #7CB567");
     self.applyTransformButton.toolTip = "Saves the positioning of the histology slice."
     self.applyTransformButton.name = "ApplyTransform"
     #loadDataFormLayout.addWidget(self.applyTransformButton)
@@ -455,16 +456,94 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.registrationGroup = qt.QGroupBox("Register MRI with histology")
     self.layout.addWidget(self.registrationGroup)
     
-    self.registrationButton1 = qt.QPushButton("Apply DistanceMap Registration")
-    self.registrationButton1.connect('clicked()', self.logic.applyDistanceMapRegistration)
-    registrationmaskLayout = qt.QFormLayout(self.registrationGroup)
-    registrationmaskLayout.addWidget(self.registrationButton1)
+    registrationmaskLayout = qt.QGridLayout(self.registrationGroup)
     
-    self.registrationButton2 = qt.QPushButton("Apply Rigid Grayvalue Registration")
-    self.registrationButton2.connect('clicked()', self.logic.applyRegistration)
-    registrationmaskLayout.addWidget(self.registrationButton2)
+    self.histoComboBoxLabel = qt.QLabel("Select the histology volume")
+    registrationmaskLayout.addWidget(self.histoComboBoxLabel, 0, 0)
     
+    self.histoComboBox = slicer.qMRMLNodeComboBox()
+    registrationmaskLayout.addWidget(self.histoComboBox, 0, 1)
+    self.histoComboBox.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+    self.histoComboBox.selectNodeUponCreation = True
+    self.histoComboBox.addEnabled = True
+    self.histoComboBox.removeEnabled = False
+    self.histoComboBox.renameEnabled = True
+    self.histoComboBox.noneEnabled = False
+    self.histoComboBox.showHidden = False
+    self.histoComboBox.showChildNodeTypes = True
+    self.histoComboBox.setMRMLScene(slicer.mrmlScene)
+    #self.histoComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.logic.setHistologyVolume(self.histoComboBox.currentNode().GetID()))
+    
+    self.histoComboBoxLabel = qt.QLabel("Select the MRI volume")
+    registrationmaskLayout.addWidget(self.histoComboBoxLabel, 1, 0)
+    
+    self.mriComboBox = slicer.qMRMLNodeComboBox()
+    registrationmaskLayout.addWidget(self.mriComboBox, 1, 1)
+    self.mriComboBox.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+    self.mriComboBox.selectNodeUponCreation = True
+    self.mriComboBox.addEnabled = True
+    self.mriComboBox.removeEnabled = False
+    self.mriComboBox.renameEnabled = True
+    self.mriComboBox.noneEnabled = False
+    self.mriComboBox.showHidden = False
+    self.mriComboBox.showChildNodeTypes = True
+    self.mriComboBox.setMRMLScene(slicer.mrmlScene)
+    #self.mriComboBox.connect('currentNodeChanged(vtkMRMLNode*)', self.logic.setMRIVolume(self.mriComboBox.currentNode().GetID()))
+    
+    self.histoComboBoxLabel = qt.QLabel("Select the histology label map")
+    registrationmaskLayout.addWidget(self.histoComboBoxLabel, 2, 0)
+    
+    self.histoLabelMapComboBox = slicer.qMRMLNodeComboBox()
+    registrationmaskLayout.addWidget(self.histoLabelMapComboBox, 2, 1)
+    self.histoLabelMapComboBox.nodeTypes = ["vtkMRMLLabelMapVolumeNode"]
+    self.histoLabelMapComboBox.selectNodeUponCreation = True
+    self.histoLabelMapComboBox.addEnabled = True
+    self.histoLabelMapComboBox.removeEnabled = False
+    self.histoLabelMapComboBox.renameEnabled = True
+    self.histoLabelMapComboBox.noneEnabled = False
+    self.histoLabelMapComboBox.showHidden = False
+    self.histoLabelMapComboBox.showChildNodeTypes = True
+    self.histoLabelMapComboBox.setMRMLScene(slicer.mrmlScene)
+    
+    self.histoComboBoxLabel = qt.QLabel("Select the MRI label map")
+    registrationmaskLayout.addWidget(self.histoComboBoxLabel, 3, 0)
+    
+    self.mriLabelMapComboBox = slicer.qMRMLNodeComboBox()
+    registrationmaskLayout.addWidget(self.mriLabelMapComboBox, 3, 1)
+    self.mriLabelMapComboBox.nodeTypes = ["vtkMRMLLabelMapVolumeNode"]
+    self.mriLabelMapComboBox.selectNodeUponCreation = True
+    self.mriLabelMapComboBox.addEnabled = True
+    self.mriLabelMapComboBox.removeEnabled = False
+    self.mriLabelMapComboBox.renameEnabled = True
+    self.mriLabelMapComboBox.noneEnabled = False
+    self.mriLabelMapComboBox.showHidden = False
+    self.mriLabelMapComboBox.showChildNodeTypes = True
+    self.mriLabelMapComboBox.setMRMLScene(slicer.mrmlScene)
+    
+    self.registrationButton1 = qt.QPushButton("Apply Rigid DistanceMap Registration")
+    self.registrationButton1.connect('clicked()', self.onApplyDistanceMapRegistration)
+    self.registrationButton1.setStyleSheet("background-color: #7CB567");
+    registrationmaskLayout.addWidget(self.registrationButton1, 4, 1)
+    
+    self.registrationButton2 = qt.QPushButton("Apply Affine Volume Registration")
+    self.registrationButton2.connect('clicked()', self.onApplyRegistration)
+    self.registrationButton2.setStyleSheet("background-color: #7CB567");
+    registrationmaskLayout.addWidget(self.registrationButton2, 5, 1)
 
+  def onApplyRegistration(self):
+    self.logic.setMRIVolume(self.mriComboBox.currentNode())
+    self.logic.setHistologyVolume(self.histoComboBox.currentNode())
+    self.logic.setMRILabelMap(self.mriLabelMapComboBox.currentNode())
+    self.logic.setHistologyLabelMap(self.histoLabelMapComboBox.currentNode())
+    self.logic.applyRegistration()
+    
+  def onApplyDistanceMapRegistration(self):
+    self.logic.setMRIVolume(self.mriComboBox.currentNode())
+    self.logic.setHistologyVolume(self.histoComboBox.currentNode())
+    self.logic.setMRILabelMap(self.mriLabelMapComboBox.currentNode())
+    self.logic.setHistologyLabelMap(self.histoLabelMapComboBox.currentNode())
+    self.logic.applyDistanceMapRegistration()
+    
   def onSelect(self):
     self.applyButton.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
 
@@ -474,7 +553,6 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
     print("Run the algorithm")
     logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), enableScreenshotsFlag, screenshotScaleFactor)
-
 
 #
 # ProstateLogic
@@ -548,6 +626,8 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     self.mriVolume = None
     self.histoVolume = None
     self.histoVolumeBW = None
+    self.mriVolumeRegistration = None
+    self.mriVolumeHistology = None
     self.mriLabelmap = None
     self.histoLabelmap = None
     self.mriLandmarks = None
@@ -560,6 +640,18 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     self.orientationSliderWidget = None
     self.roiLabelMap = None
     self.labelMapValues = {'PROSTATE': 238, 'URETHRA': 227}
+
+  def setMRIVolume(self, mriVolume):
+    self.mriVolumeRegistration = mriVolume
+
+  def setHistologyVolume(self, histologyVolume):
+    self.histoVolumeRegistration = histologyVolume
+
+  def setMRILabelMap(self, mriLabelMap):
+    self.mriLabelmap = mriLabelMap
+    
+  def setHistologyLabelMap(self, histologyLabelMap):
+    self.histoLabelmap = histologyLabelMap
 
   def loadMRIVolume(self):
     volumeLoaded = slicer.util.openAddVolumeDialog()
@@ -954,7 +1046,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     distanceMapTransform.SetName('DistanceMapTransform')
     paramsRigid = {'fixedVolume': histoDistanceMap,
                    'movingVolume': mriDistanceMap,
-#                    'fixedBinaryVolume': self.histoLabelmap,
+                   'fixedBinaryVolume': self.histoLabelmap,
 #                    'movingBinaryVolume': self.mriLabelmap,
                    'outputTransform': distanceMapTransform.GetID(),
                    #'outputVolume': self.currentResult.rigidVolume.GetID(),
