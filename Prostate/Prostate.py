@@ -376,43 +376,43 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     
     self.histologymaskGroup = qt.QGroupBox("Add Mask for Histology")
     self.layout.addWidget(self.histologymaskGroup)
-    self.converthistologyLabel = qt.QLabel("1.")
+#     self.converthistologyLabel = qt.QLabel("1.")
     histologymaskLayout = qt.QGridLayout(self.histologymaskGroup)
-    self.converthistologyButton = qt.QPushButton("Convert Histology to Greyscale")
-    self.converthistologyButton.connect('clicked()', self.logic.convertHistology)
-    histologymaskLayout.addWidget(self.converthistologyButton, 0, 1)
-    histologymaskLayout.addWidget(self.converthistologyLabel, 0, 0)
+#     self.converthistologyButton = qt.QPushButton("Convert Histology to Greyscale")
+#     self.converthistologyButton.connect('clicked()', self.logic.convertHistology)
+#     histologymaskLayout.addWidget(self.converthistologyButton, 0, 1)
+#     histologymaskLayout.addWidget(self.converthistologyLabel, 0, 0)
+#     
+#     self.markprostateLabel = qt.QLabel("2.")
+#     histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
+#     self.markProstateButton = qt.QPushButton("Resample histology to match MRI spacing")
+#     self.markProstateButton.toolTip = "Resample histology to match MRI spacing."
+#     self.markProstateButton.name = "ResampleHistology"
+#     histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
+#     self.markProstateButton.connect('clicked()', self.logic.resampleHistology)
     
-    self.markprostateLabel = qt.QLabel("2.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
-    self.markProstateButton = qt.QPushButton("Resample histology to match MRI spacing")
-    self.markProstateButton.toolTip = "Resample histology to match MRI spacing."
-    self.markProstateButton.name = "ResampleHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
-    self.markProstateButton.connect('clicked()', self.logic.resampleHistology)
-    
-    self.markprostateLabel = qt.QLabel("3.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 2, 0)
+    self.markprostateLabel = qt.QLabel("1.")
+    histologymaskLayout.addWidget(self.markprostateLabel, 0, 0)
     self.markProstateButton = qt.QPushButton("Paint Histology")
     self.markProstateButton.toolTip = "Mark the insides of the histology."
     self.markProstateButton.name = "MarkHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 2, 1)
+    histologymaskLayout.addWidget(self.markProstateButton, 0, 1)
     self.markProstateButton.connect('clicked()', self.logic.paintHistology)
     
-    self.markprostateLabel = qt.QLabel("4.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 3, 0)
+    self.markprostateLabel = qt.QLabel("2.")
+    histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
     self.markProstateButton = qt.QPushButton("Paint Histology Urethra")
     self.markProstateButton.toolTip = "Mark the urethra of the histology."
     self.markProstateButton.name = "FillHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 3, 1)
+    histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
     self.markProstateButton.connect('clicked()', self.logic.paintHistologyUrethra)
     
-    self.markprostateLabel = qt.QLabel("5.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 4, 0)
+    self.markprostateLabel = qt.QLabel("3.")
+    histologymaskLayout.addWidget(self.markprostateLabel, 2, 0)
     self.markProstateButton = qt.QPushButton("Delete Urethra from Histology")
     self.markProstateButton.toolTip = "Deletes the Urethra Labelmap out of the Histology Labelmap."
     self.markProstateButton.name = "FillHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 4, 1)
+    histologymaskLayout.addWidget(self.markProstateButton, 2, 1)
     self.markProstateButton.connect('clicked()', self.logic.combineHistologyLabelmaps)   
     
 #     editorFrame = qt.QFrame()
@@ -422,7 +422,7 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
 #     palette.setColor(qt.QPalette.Background, qt.QColor(bgColor, bgColor, bgColor))
 #     editorFrame.setPalette(palette)
 #     editorFrame.setAutoFillBackground(True);
-#     histologymaskLayout.addWidget(editorFrame, 4, 0)
+#     histologymaskLayout.addWidget(editorFrame, 3, 0)
 #     self.editorFrame = editorFrame
 #     
 #     self.markprostateLabel = qt.QLabel("5.")
@@ -433,14 +433,14 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
 #     histologymaskLayout.addWidget(self.markProstateButton, 4, 1)
 #     self.markProstateButton.connect('clicked()', self.logic.deleteUrethraHisto)
 #     
-#     self.editorEffects = ["DefaultTool", "EraseLabel", "Paint", "Threshold"]
-#     #self.editorWidget = __main__.EditorWidget(parent=self.editorFrame, embedded=True, suppliedEffects=self.editorEffects, showVolumesFrame=False)
-#     self.editorWidgetParent = slicer.qMRMLWidget()
-#     self.editorWidgetParent.setLayout(qt.QVBoxLayout())
-#     self.editorWidgetParent.setMRMLScene(slicer.mrmlScene)
-#     editorWidget = EditorWidget(parent=self.editorWidgetParent, showVolumesFrame=False)
-#     editorWidget.setup()
-#     histologymaskLayout.addWidget(self.editorWidgetParent, 5, 0)
+    self.editorEffects = ["DefaultTool", "EraseLabel", "Paint", "Threshold"]
+    #self.editorWidget = __main__.EditorWidget(parent=self.editorFrame, embedded=True, suppliedEffects=self.editorEffects, showVolumesFrame=False)
+    self.editorWidgetParent = slicer.qMRMLWidget()
+    self.editorWidgetParent.setLayout(qt.QVBoxLayout())
+    self.editorWidgetParent.setMRMLScene(slicer.mrmlScene)
+    editorWidget = EditorWidget(parent=self.editorWidgetParent, showVolumesFrame=False)
+    editorWidget.setup()
+    histologymaskLayout.addWidget(self.editorWidgetParent, 3, 0, 2, 1)
     
     self.markmriGroup = qt.QGroupBox("Add Mask for MRI")
     self.layout.addWidget(self.markmriGroup)
@@ -466,20 +466,20 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.setlandmarksLabel = qt.QLabel("3.")
     markmriLayout.addWidget(self.setlandmarksLabel, 2, 0)
     
-    self.generateMRIMaskButton = qt.QPushButton("Generate mask from landmarks")
-    self.generateMRIMaskButton.toolTip = "Generate a mask for the MRI volume out of the MRI landmarks"
-    self.generateMRIMaskButton.name = "GenerateMRIMask"
+    self.generateMRIMaskButton = qt.QPushButton("Paint urethra in MRI")
+    self.generateMRIMaskButton.toolTip = "Mark the urethra to delete it from the labelmap"
+    self.generateMRIMaskButton.name = "DeleteUrethra"
     markmriLayout.addWidget(self.generateMRIMaskButton, 2, 1)
-    self.generateMRIMaskButton.connect('clicked()', self.logic.generateMRIMask)
+    self.generateMRIMaskButton.connect('clicked()', self.logic.paintMRIUrethra)
     
     self.setlandmarksLabel = qt.QLabel("4.")
     markmriLayout.addWidget(self.setlandmarksLabel, 3, 0)
     
-    self.generateMRIMaskButton = qt.QPushButton("Delete urethra from Mask")
-    self.generateMRIMaskButton.toolTip = "Mark the urethra to delete it from the labelmap"
-    self.generateMRIMaskButton.name = "DeleteUrethra"
+    self.generateMRIMaskButton = qt.QPushButton("Generate mask from landmarks")
+    self.generateMRIMaskButton.toolTip = "Generate a mask for the MRI volume out of the MRI landmarks"
+    self.generateMRIMaskButton.name = "GenerateMRIMask"
     markmriLayout.addWidget(self.generateMRIMaskButton, 3, 1)
-    self.generateMRIMaskButton.connect('clicked()', self.logic.deleteUrethraMRI)
+    self.generateMRIMaskButton.connect('clicked()', self.logic.generateMRIMask)
     
     self.registrationGroup = qt.QGroupBox("Register MRI with histology")
     self.layout.addWidget(self.registrationGroup)
@@ -807,6 +807,9 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
       print('bla')
       logic = slicer.vtkSlicerTransformLogic()
       logic.hardenTransform(self.mriVolume)
+      self.convertHistology()
+      self.resampleHistology()
+      self.alignSlices()
       
   def setLayout(self):
     layoutManager = slicer.app.layoutManager()
@@ -868,6 +871,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     print(self.mriVolume.GetID())
     if self.wholeSceneTransform is None:
         self.wholeSceneTransform = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
+        self.wholeSceneTransform.SetName('Mutual Information Transformation')
     paramsRigid = {'fixedVolume': self.histoVolumeBW,
                    'movingVolume': self.mriVolume,
                    'fixedBinaryVolume': self.histoLabelmap,
@@ -884,7 +888,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     slicer.cli.run(slicer.modules.brainsfit, None, paramsRigid, wait_for_completion=True) 
   
   def paintHistology(self):
-    self.finishedPainting() 
+    #self.finishedPainting() 
     editUtil = EditorLib.EditUtil.EditUtil()
     parameterNode = editUtil.getParameterNode()      
     if self.histoLabelmap is None:
@@ -892,7 +896,11 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     editUtil.setActiveVolumes(self.histoVolumeBW, self.histoLabelmap)
     lm = slicer.app.layoutManager()
     lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoLabelmap.GetID())
-    parameterNode.SetParameter('effect', 'PaintEffect')
+    paintEffectOptions = EditorLib.PaintEffectOptions()
+    paintEffectOptions.setMRMLDefaults()
+    paintEffectOptions.__del__()
+    parameterNode.SetParameter('PaintEffect,radius', '5')
+    paintTool = EditorLib.PaintEffectTool(lm.sliceWidget('Histology'))
     
   def paintHistologyUrethra(self):
     self.finishedPainting()  
@@ -901,9 +909,12 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     if self.histoUrethraLabelmap is None:
       self.histoUrethraLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolumeBW, 'Histo_Urethra_Label_Map')
     editUtil.setActiveVolumes(self.histoVolumeBW, self.histoUrethraLabelmap)
+    paintEffectOptions = EditorLib.PaintEffectOptions()
+    paintEffectOptions.setMRMLDefaults()
+    paintEffectOptions.__del__()
     lm = slicer.app.layoutManager()
     lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoUrethraLabelmap.GetID())
-    parameterNode.SetParameter('effect', 'PaintEffect')
+    parameterNode.SetParameter('PaintEffect,radius', '2')
     
   def paintMRI(self):
     self.finishedPainting() 
@@ -911,55 +922,91 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     parameterNode = editUtil.getParameterNode()      
     if self.mriLabelmap is None:
       self.mriLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.mriVolume, 'MRI_Label_Map')
+    editUtil.setLabel(self.mriLabelmap)
     lm = slicer.app.layoutManager()
     lm.sliceWidget('Axial').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.mriLabelmap.GetID())      
-    parameterNode.SetParameter('effect', 'PaintEffect')   
+    parameterNode.SetParameter('PaintEffect,radius', '20')
 
   def paintMRIUrethra(self):
-    self.finishedPainting() 
+    #self.finishedPainting() 
     editUtil = EditorLib.EditUtil.EditUtil()
     parameterNode = editUtil.getParameterNode()      
     if self.mriUrethraLabelmap is None:
       self.mriUrethraLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.mriVolume, 'MRI_Urethra_Label_Map')
+    editUtil.setActiveVolumes(self.mriVolume, self.mriUrethraLabelmap)
+    editUtil.setLabel(4)
+    paintEffectOptions = EditorLib.PaintEffectOptions()
+    paintEffectOptions.setMRMLDefaults()
+    paintEffectOptions.__del__()
     lm = slicer.app.layoutManager()
     lm.sliceWidget('Axial').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.mriUrethraLabelmap.GetID())  
-    parameterNode.SetParameter('effect', 'PaintEffect')
+    parameterNode.SetParameter('PaintEffect,radius', '3')
 
   def finishedPainting(self):
+    lm = slicer.app.layoutManager()
     editUtil = EditorLib.EditUtil.EditUtil()
     parameterNode = editUtil.getParameterNode()      
     parameterNode.SetParameter('effect', 'DefaultTool')
+    paintTool = EditorLib.PaintEffectTool(lm.sliceWidget('Histology'))
+    paintTool.cleanup()
+    paintTool = EditorLib.PaintEffectTool(lm.sliceWidget('Axial'))
+    paintTool.cleanup()
+    paintTool = None
 
   def combineHistologyLabelmaps(self):
+    self.finishedPainting()
     # TODO
-    filter = sitk.SubtractImageFilter()
+    input1 = sitkUtils.PullFromSlicer('Histo_Label_Map')
+    input2 = sitkUtils.PullFromSlicer('Histo_Urethra_Label_Map')
     
+#     input1 = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress('Histo_Label_Map'))
+#     input2 = sitk.ReadImage(sitkUtils.GetSlicerITKReadWriteAddress('Histo_Urethra_Label_Map'))
+    filter = sitk.SubtractImageFilter()
+    histoMap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolumeBW, 'Histo_Final_Label_Map')
+    histoMap = filter.Execute(input1, input2)
+    #print(histoMap.getType())
+    sitkUtils.PushToSlicer(histoMap, 'Histo_Final_Label_Map', 2)
+#     histoMap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolumeBW, 'Histo_Final_Label_Map')
+#     from SimpleFilters import SimpleFiltersLogic
+#     filter = SimpleFiltersLogic()
+#     filter.run(sitk.SubtractImageFilter(), histoMap, True, slicer.util.getNode('Histo_Label_Map'), slicer.util.getNode('Histo_Urethra_Label_Map'))
     return
 
   def combineMRILabelmaps(self):
-    # TODO
+    self.finishedPainting()
+    
+    input1 = sitkUtils.PullFromSlicer('MRI_Label_Map')
+    input2 = sitkUtils.PullFromSlicer('MRI_Urethra_Label_Map')
+    filter = sitk.SubtractImageFilter()
+    mriMap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.mriVolume, 'MRI_Final_Label_Map')
+    mriMap = filter.Execute(input1, input2)
+    #print(histoMap.getType())
+    sitkUtils.PushToSlicer(mriMap, 'MRI_Final_Label_Map', 2)
+#     from SimpleFilters import SimpleFiltersLogic
+#     filter = SimpleFiltersLogic()
+#     filter.run(sitk.SubtractImageFilter(), mriMap, True, slicer.util.getNode('MRI_Label_Map'), slicer.util.getNode('MRI_Urethra_Label_Map'))
     return        
              
   def markBoundaries(self):
     editUtil = EditorLib.EditUtil.EditUtil()
     parameterNode = editUtil.getParameterNode()
-   # lm = slicer.app.layoutManager()
+    lm = slicer.app.layoutManager()
     if self.histoLabelmap is None:
       self.histoLabelmap = slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.histoVolumeBW, 'Histo_Label_Map')
     #lm.sliceWidget('Red').sliceLogic().GetSliceCompositeNode().SetBackgroundVolumeID(self.dataManager.getMRI().GetID())
-#     lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoLabelmap.GetID())
-#     paintEffectOptions = EditorLib.PaintEffectOptions()
-#     paintEffectOptions.setMRMLDefaults()
-#     paintEffectOptions.__del__()
-#     #slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.dataManager.getMRI(), 'prostateLabelMap')
-#     editUtil.setLabel(self.labelMapValues['PROSTATE'])
-#     #self.delayDisplay('Paint radius is %s' % parameterNode.GetParameter('PaintEffect,radius'))
-#     sliceWidget = lm.sliceWidget('Histology')
-#     size = min(sliceWidget.width,sliceWidget.height)
-#     step = size / 12
-#     center = size / 2
+    lm.sliceWidget('Histology').sliceLogic().GetSliceCompositeNode().SetLabelVolumeID(self.histoLabelmap.GetID())
+    paintEffectOptions = EditorLib.PaintEffectOptions()
+    paintEffectOptions.setMRMLDefaults()
+    paintEffectOptions.__del__()
+    #slicer.modules.volumes.logic().CreateAndAddLabelVolume(self.dataManager.getMRI(), 'prostateLabelMap')
+    editUtil.setLabel(self.labelMapValues['PROSTATE'])
+    #self.delayDisplay('Paint radius is %s' % parameterNode.GetParameter('PaintEffect,radius'))
+    sliceWidget = lm.sliceWidget('Histology')
+    size = min(sliceWidget.width,sliceWidget.height)
+    step = size / 12
+    center = size / 2
     parameterNode.SetParameter('effect', 'PaintEffect')
-#     paintTool = EditorLib.PaintEffectTool(sliceWidget)
+    paintTool = EditorLib.PaintEffectTool(sliceWidget)
   
   def deleteUrethraMRI(self):
     # TODO: create copy of MRI mask  
@@ -1092,11 +1139,29 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     #slicer.mrmlScene.AddNode(outputLabelMap)
 
     # define params
-    params = {'sampleDistance': 0.1, 'labelValue': 5, 'InputVolume': slicer.util.getNode('MRI_Volume'),
+    params = {'sampleDistance': 0.1, 'labelValue': 4, 'InputVolume': slicer.util.getNode('MRI_Volume'),
               'surface': self.clippingModelNode.GetID(), 'OutputVolume': outputLabelMap.GetID()}
 
     # run ModelToLabelMap-CLI Module
     slicer.cli.run(slicer.modules.modeltolabelmap, None, params, wait_for_completion=True)
+    
+    params = {'inputVolume': slicer.util.getNode('MRI_Label_Map'),
+              #'referenceVolume': slicer.util.getNode('MRI_Volume'),
+              'outputVolume': slicer.util.getNode('MRI_Label_Map'),
+              'pixelType': 'short'}
+    slicer.cli.run(slicer.modules.brainsresample, None, params, wait_for_completion=True)
+    
+    params = {'inputVolume': slicer.util.getNode('MRI_Urethra_Label_Map'),
+              'referenceVolume': slicer.util.getNode('MRI_Label_Map'),
+              'outputVolume': slicer.util.getNode('MRI_Urethra_Label_Map'),
+              'pixelType': 'short'}
+    slicer.cli.run(slicer.modules.brainsresample, None, params, wait_for_completion=True)
+    
+    input1 = sitkUtils.PullFromSlicer('MRI_Label_Map')
+    input2 = sitkUtils.PullFromSlicer('MRI_Urethra_Label_Map')
+    filter = sitk.SubtractImageFilter()
+    output = filter.Execute(input1, input2)
+    sitkUtils.PushToSlicer(output, 'MRI_Final_Label_Map', 2)
   
   def generateDistanceMap(self, labelID, smoothingSteps):
     # TODO : crop distance maps
@@ -1133,26 +1198,37 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     slicer.cli.run(slicer.modules.brainsresample, None, params, wait_for_completion=True)
   
   def applyDistanceMapRegistration(self):
-    self.generateDistanceMap(self.mriLabelmap, 0)
-    self.generateDistanceMap(self.histoLabelmap, 0)
-    histoDistanceMap = slicer.util.getNode(self.histoLabelmap.GetName()+'_DistanceMap')
-    mriDistanceMap = slicer.util.getNode(self.mriLabelmap.GetName()+'_DistanceMap')
+#     mriFinalLabelMap = slicer.util.getNode('MRI_Final_Label_Map')
+#     histoFinalLabelMap = slicer.util.getNode('Histo_Final_Label_Map')
+    mriFinalLabelMap = self.mriLabelmap
+    histoFinalLabelMap = self.histoLabelmap
+#     self.generateDistanceMap(self.mriLabelmap, 0)
+#     self.generateDistanceMap(self.histoLabelmap, 0)
+    self.generateDistanceMap(mriFinalLabelMap, 0)
+    self.generateDistanceMap(histoFinalLabelMap, 0)
+    histoLabelMapNoHole = slicer.util.getNode('Histo_Label_Map')
+#     histoDistanceMap = slicer.util.getNode(self.histoLabelmap.GetName()+'_DistanceMap')
+#     mriDistanceMap = slicer.util.getNode(self.mriLabelmap.GetName()+'_DistanceMap')
+    histoDistanceMap = slicer.util.getNode(histoFinalLabelMap.GetName()+'_DistanceMap')
+    mriDistanceMap = slicer.util.getNode(mriFinalLabelMap.GetName()+'_DistanceMap')
     distanceMapTransform = slicer.mrmlScene.AddNode(slicer.vtkMRMLLinearTransformNode())
     distanceMapTransform.SetName('DistanceMapTransform')
     paramsRigid = {'fixedVolume': histoDistanceMap,
                    'movingVolume': mriDistanceMap,
-                   'fixedBinaryVolume': self.histoLabelmap,
+                   'fixedBinaryVolume': histoLabelMapNoHole,
 #                    'movingBinaryVolume': self.mriLabelmap,
                    'outputTransform': distanceMapTransform.GetID(),
                    #'outputVolume': self.currentResult.rigidVolume.GetID(),
-                   'maskProcessingMode': "NOMASK",
-                   'useRigid': False,
-                   'useAffine': True,
+                   'maskProcessingMode': "ROI",
+                   'useRigid': True,
+                   'useAffine': False,
                    'useBSpline': False,
                    'useScaleVersor3D': False,
                    'useScaleSkewVersor3D': False,
-                   'useROIBSpline': False}
-    slicer.cli.run(slicer.modules.brainsfit, None, paramsRigid, wait_for_completion=True) 
+                   'useROIBSpline': False,
+                   'useMomentsAlign': True}
+    slicer.cli.run(slicer.modules.brainsfit, None, paramsRigid, wait_for_completion=True)
+    self.alignSlices() 
                 
   def hasImageData(self, volumeNode):
     """This is a dummy logic method that
