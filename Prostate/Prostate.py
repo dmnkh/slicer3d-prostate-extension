@@ -391,29 +391,29 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
 #     histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
 #     self.markProstateButton.connect('clicked()', self.logic.resampleHistology)
     
-    self.markprostateLabel = qt.QLabel("1.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 0, 0)
-    self.markProstateButton = qt.QPushButton("Paint Histology")
-    self.markProstateButton.toolTip = "Mark the insides of the histology."
-    self.markProstateButton.name = "MarkHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 0, 1)
-    self.markProstateButton.connect('clicked()', self.logic.paintHistology)
-    
-    self.markprostateLabel = qt.QLabel("2.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
-    self.markProstateButton = qt.QPushButton("Paint Histology Urethra")
-    self.markProstateButton.toolTip = "Mark the urethra of the histology."
-    self.markProstateButton.name = "FillHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
-    self.markProstateButton.connect('clicked()', self.logic.paintHistologyUrethra)
-    
-    self.markprostateLabel = qt.QLabel("3.")
-    histologymaskLayout.addWidget(self.markprostateLabel, 2, 0)
-    self.markProstateButton = qt.QPushButton("Delete Urethra from Histology")
-    self.markProstateButton.toolTip = "Deletes the Urethra Labelmap out of the Histology Labelmap."
-    self.markProstateButton.name = "FillHistology"
-    histologymaskLayout.addWidget(self.markProstateButton, 2, 1)
-    self.markProstateButton.connect('clicked()', self.logic.combineHistologyLabelmaps)   
+#     self.markprostateLabel = qt.QLabel("1.")
+#     histologymaskLayout.addWidget(self.markprostateLabel, 0, 0)
+#     self.markProstateButton = qt.QPushButton("Paint Histology")
+#     self.markProstateButton.toolTip = "Mark the insides of the histology."
+#     self.markProstateButton.name = "MarkHistology"
+#     histologymaskLayout.addWidget(self.markProstateButton, 0, 1)
+#     self.markProstateButton.connect('clicked()', self.logic.paintHistology)
+#     
+#     self.markprostateLabel = qt.QLabel("2.")
+#     histologymaskLayout.addWidget(self.markprostateLabel, 1, 0)
+#     self.markProstateButton = qt.QPushButton("Paint Histology Urethra")
+#     self.markProstateButton.toolTip = "Mark the urethra of the histology."
+#     self.markProstateButton.name = "FillHistology"
+#     histologymaskLayout.addWidget(self.markProstateButton, 1, 1)
+#     self.markProstateButton.connect('clicked()', self.logic.paintHistologyUrethra)
+#     
+#     self.markprostateLabel = qt.QLabel("3.")
+#     histologymaskLayout.addWidget(self.markprostateLabel, 2, 0)
+#     self.markProstateButton = qt.QPushButton("Delete Urethra from Histology")
+#     self.markProstateButton.toolTip = "Deletes the Urethra Labelmap out of the Histology Labelmap."
+#     self.markProstateButton.name = "FillHistology"
+#     histologymaskLayout.addWidget(self.markProstateButton, 2, 1)
+#     self.markProstateButton.connect('clicked()', self.logic.combineHistologyLabelmaps)   
     
 #     editorFrame = qt.QFrame()
 #     editorFrame.setLayout(qt.QVBoxLayout())
@@ -438,9 +438,9 @@ class ProstateWidget(ScriptedLoadableModuleWidget):
     self.editorWidgetParent = slicer.qMRMLWidget()
     self.editorWidgetParent.setLayout(qt.QVBoxLayout())
     self.editorWidgetParent.setMRMLScene(slicer.mrmlScene)
-    editorWidget = EditorWidget(parent=self.editorWidgetParent, showVolumesFrame=False)
+    editorWidget = EditorWidget(parent=self.editorWidgetParent, showVolumesFrame=True)
     editorWidget.setup()
-    histologymaskLayout.addWidget(self.editorWidgetParent, 3, 0, 2, 1)
+    histologymaskLayout.addWidget(self.editorWidgetParent, 3, 0, 2, 0)
     
     self.markmriGroup = qt.QGroupBox("Add Mask for MRI")
     self.layout.addWidget(self.markmriGroup)
@@ -808,7 +808,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
       logic = slicer.vtkSlicerTransformLogic()
       logic.hardenTransform(self.mriVolume)
       self.convertHistology()
-      self.resampleHistology()
+      #self.resampleHistology()
       self.alignSlices()
       
   def setLayout(self):
@@ -1180,7 +1180,7 @@ class ProstateLogic(ScriptedLoadableModuleLogic):
     # Set up filter  
     dt = sitk.SignedMaurerDistanceMapImageFilter()
     dt.SetSquaredDistance(False)
-    dt.SetUseImageSpacing(False)
+    dt.SetUseImageSpacing(True)
     dt.SetInsideIsPositive(False)
     if smoothingSteps == 0:
       labelAddress = sitkUtils.GetSlicerITKReadWriteAddress(labelID.GetName())
