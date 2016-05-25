@@ -1653,7 +1653,7 @@ class LandmarkManager():
         fiducial.SetName(name)
                 
     def setLandmarksForMRI(self):
-      self.createFiducialMap('MRI_Landmarks')
+      self.createFiducialMap('MRI')
       self.__setMouseModeToFiducial()
       
     def setLandmarksForHisto(self):
